@@ -28,7 +28,7 @@ Arquivo::Arquivo(string nomeArquivo, int numero) {
 	}
 }
 
-void Arquivo::lerInstancia() {
+Dados * Arquivo::lerInstancia() {
 	Dados *d = new Dados();
 	string linha;
 	int contline = 0;
@@ -154,6 +154,7 @@ void Arquivo::lerInstancia() {
 		}
 	}
 
+	return d;
 }
 
 Arquivo::~Arquivo() {

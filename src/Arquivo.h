@@ -8,6 +8,7 @@
 #ifndef ARQUIVO_H
 #define ARQUIVO_H
 
+#include "Dados.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -24,7 +25,7 @@ class Arquivo{
 		ifstream funcao;
 		string nomeArquivo;
 
-		void lerInstancia();
+		Dados * lerInstancia();
 
 
 		Arquivo(string nomeArquivo, int numero);

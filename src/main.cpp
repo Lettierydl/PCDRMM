@@ -7,7 +7,7 @@
 //============================================================================
 
 #include "Arquivo.h"
-
+#include "Solucao.h"
 #include <iostream>
 #include "stdlib.h"
 #include <string>
@@ -26,8 +26,9 @@ int main(int argc, char **argv) {
 
 		string instancia = "Instancias_Denise";
 		Arquivo arq(instancia, i);
-		arq.lerInstancia();
-
+		Dados *d = arq.lerInstancia();
+		Solucao *s = new Solucao(d);
+		s->print();
 	}
 
 	return 0;
