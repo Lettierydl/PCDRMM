@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <sys/time.h>
-#include<time.h>
+#include <time.h>
 
 using namespace std;
 
@@ -27,8 +27,17 @@ int main(int argc, char **argv) {
 		string instancia = "Instancias_Denise";
 		Arquivo arq(instancia, i);
 		Dados *d = arq.lerInstancia();
+		d->print();
+
 		Solucao *s = new Solucao(d);
+		//s->iniciarSolucaoComMelhorMakespan();
+		s->iniciarSolucaoComMelhorCusto();
+		//s->iniciarSolucaoComModosAleatorios();
+
 		s->print();
+
+		//testar solucao, apenas algumas vezes
+
 	}
 
 	return 0;

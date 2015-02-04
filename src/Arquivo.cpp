@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
+#include <list>
 #include <iostream>
 #include <fstream>
 #include <sys/stat.h>
@@ -53,13 +54,8 @@ Dados * Arquivo::lerInstancia() {
 			d->M = new int[d->j];
 			d->S = new int[d->j];
 
-			d->H = new int*[d->j];
-			for (int l = 0; l < d->j; ++l) {
-				d->H[l] = new int[d->j];
-				for (int c = 0; c < d->j; c++) {
-					d->H[l][c] = 0;
-				}
-			}
+			d->H = vector<list<int> >(d->j);
+
 			break;
 		}
 		case 20: {
@@ -69,9 +65,9 @@ Dados * Arquivo::lerInstancia() {
 				d->M[i] = stoi(l++->str());
 				d->S[i] = stoi(l++->str());
 
+
 				for (; l != sregex_token_iterator(); l++) {
-					d->H[i][stoi(l->str()) - 1] = 1;
-					//d->H[stoi(l->str())-1][i]= -1;
+					d->H[stoi(l->str()) - 1].push_back(i);
 				}
 
 				getline(this->dados, linha);
@@ -146,13 +142,15 @@ Dados * Arquivo::lerInstancia() {
 		contline++;
 		getline(this->funcao, linha);
 		if (contline == 16) {
-			d->custo_recurso = new int[d->tipos];
+			d->custo_recurso = new float[d->tipos];
+			regex rx("\\d+(\\.\\d{1,2})");
 			sregex_token_iterator l(linha.begin(), linha.end(), rx);
 			for (int k = 0; k < d->tipos; ++k, ++l) {
-				d->custo_recurso[k] = stoi(l->str());
+				d->custo_recurso[k] = stof(l->str());
 			}
 		}
 	}
+
 
 	return d;
 }

@@ -7,18 +7,21 @@ CPP_SRCS += \
 ../src/Arquivo.cpp \
 ../src/Dados.cpp \
 ../src/Solucao.cpp \
+../src/Teste.cpp \
 ../src/main.cpp 
 
 OBJS += \
 ./src/Arquivo.o \
 ./src/Dados.o \
 ./src/Solucao.o \
+./src/Teste.o \
 ./src/main.o 
 
 CPP_DEPS += \
 ./src/Arquivo.d \
 ./src/Dados.d \
 ./src/Solucao.d \
+./src/Teste.d \
 ./src/main.d 
 
 
