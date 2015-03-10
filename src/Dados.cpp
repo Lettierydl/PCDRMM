@@ -10,19 +10,24 @@
 #include <stdlib.h>
 #include <fstream>
 #include <iostream>
-#include "stdlib.h"
 #include <string>
 #include <vector>
-#include <stdio.h>
-#include <stdlib.h>
 
 using namespace std;
 
-Dados::Dados(){}
 
+Dados::Dados(int tipos, int j, int d):tipos(tipos), j(j), D(d),
+		M(j), S(j), H(j), r(j), d(j), custo_recurso(j), disponibilidade(tipos){
+}
 void Dados::print(){
 	cout << "J | D |Tipos"<< endl;
 	cout << j << " | "<< D << " | "<< tipos << endl;
+
+	cout << "custos"<< endl;
+	for(int k =0;k < tipos;k++){
+		cout << custo_recurso[k]<< " | ";
+	}
+	cout << endl;
 
 	cout <<"Rjik" << endl;
 	for(int j = 0; j < this->j ;j++) {
@@ -61,11 +66,13 @@ void Dados::print(){
 }
 
 Dados::~Dados() {
-	free(this->M);
-	free(this->S);
-	free(this->custo_recurso);
-	free(this->d);
-	free(this->disponibilidade);
-	free(this->r);
+	/*
+	delete this->M;
+	delete this->S;
+	delete this->custo_recurso;
+	delete this->d;
+	delete this->disponibilidade;
+	delete this->r;
+	*/
 }
 

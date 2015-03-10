@@ -7,22 +7,24 @@
 
 #include "Arquivo.h"
 #include "Dados.h"
-#include <stdio.h>
 #include <stdlib.h>
 #include <string>
 #include <list>
 #include <iostream>
 #include <fstream>
-#include <sys/stat.h>
-#include <regex>
+#include <sstream>
 
 using namespace std;
 
 Arquivo::Arquivo(string nomeArquivo, int numero) {
-	this->nomeArquivo = nomeArquivo + "/a10" + to_string(numero) + "_1";
 
-	this->dados.open(this->nomeArquivo + ".dat", ios::in);
-	this->funcao.open(this->nomeArquivo + ".tx2", ios::in);
+	stringstream ss;
+	ss << nomeArquivo << "/a10" << numero << "_1";
+
+	this->nomeArquivo = ss.str();
+
+	this->dados.open((this->nomeArquivo + ".dat").c_str(), ios::in);
+	this->funcao.open((this->nomeArquivo + ".tx2").c_str(), ios::in);
 
 	if (!&dados) {
 		cout << "arquivo nao pode ser aberto" << endl;
@@ -30,6 +32,113 @@ Arquivo::Arquivo(string nomeArquivo, int numero) {
 }
 
 Dados * Arquivo::lerInstancia() {
+	Dados * d;
+		string linha;
+		string c;// cache de palavras nao utilizadas
+		int contline = 1;
+
+		while (!this->dados.fail()) {
+				int tipos;
+				getline(this->dados, linha);
+				contline++;
+
+				switch (contline) {
+				case 9: {
+					this->dados >> c >> c >> c;
+
+					this->dados >> tipos;
+					break;
+				}
+				case 16: {
+					int j, D;
+					this->dados >> c;
+					this->dados >> j;
+					j+=2;//atividades virtuais
+
+					this->dados >> c >> c;
+					this->dados >> D;
+					d = new Dados(tipos, j, D);
+					break;
+				}
+				case 20: {
+					for (int i = 0; i < d->j; i++, contline++) {
+						this->dados >> c;
+						this->dados >> d->M[i] ;
+						this->dados >> d->S[i] ;
+
+
+						for (int qs = 0; qs < d->S[i]; qs++) {
+							int s;
+							this->dados >> s;
+							d->H[s - 1].push_back(i);
+						}
+
+						getline(this->dados, linha);
+					}
+
+					for (int j = 0; j < d->j; ++j) {
+						d->d[j] = vector<int>(d->M[j]); // quantidade de modos das atividades
+					}
+					for (int j = 0; j < d->j; ++j) {
+						d->r[j] =  vector< vector<int> >(d->M[j]);
+						for (int i = 0; i < d->M[j]; ++i) {
+							d->r[j][i] =  vector<int>(d->tipos);
+						}
+					}
+					break;
+				}
+				case 35: {
+					for (int j = 0; j < d->j; j++) {
+						for (int i = 0; i < d->M[j]; ++i) {
+							if (i == 0) { // toda primeira linha tem um nuermo a mais
+								this->dados >>c;
+							}
+							this->dados >>c;
+							this->dados >> d->d[j][i];
+							for (int k = 0; k < d->tipos; ++k) {
+
+								this->dados >> d->r[j][i][k] ;
+							}
+
+							getline(this->dados, linha);
+						}
+					}
+
+					contline = 67;
+					break;
+				}
+				case 70: {
+
+					for (int k = 0; k < d->tipos; ++k) {
+						this->dados >> d->disponibilidade[k];
+					}
+					break;
+				}
+
+				}//fim do case
+
+			} // fim do while final de leitura do arquivo
+
+			contline = 1;
+
+			while (!this->funcao.fail()) {
+				contline++;
+				getline(this->funcao, linha);
+				if (contline == 16) {
+					for (int k = 0; k < d->tipos; ++k) {
+						this->funcao >> d->custo_recurso[k];
+					}
+				}
+			}
+
+
+		return d;
+}
+
+/*
+
+
+ Dados * Arquivo::lerInstancia() {
 	Dados *d = new Dados();
 	string linha;
 	int contline = 0;
@@ -111,17 +220,7 @@ Dados * Arquivo::lerInstancia() {
 				}
 			}
 
-			/*imprimir r
-			 for (int j = 0; j < d->j; j++) {
-			 cout << endl<< "j "<< j << ":";
-			 for(int i = 0; i < d->M[j]; ++i){
-			 cout << endl << "\tM "<< i << " dj: "<< d->d[j][i] << endl << "\t\t R -> ";
-			 for(int k = 0; k < d->tipos;++k){
-			 cout << d->r[j][i][k]<< " ";
-			 }
-			 }
-			 }
-			 */
+
 			contline = 67;
 			break;
 		}
@@ -154,6 +253,7 @@ Dados * Arquivo::lerInstancia() {
 
 	return d;
 }
+*/
 
 Arquivo::~Arquivo() {
 	this->dados.close();

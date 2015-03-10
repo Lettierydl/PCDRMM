@@ -28,6 +28,7 @@ class Arquivo{
 		Dados * lerInstancia();
 
 
+
 		Arquivo(string nomeArquivo, int numero);
 		~Arquivo();
 };

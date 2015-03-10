@@ -35,7 +35,7 @@ Solucao::Solucao(Dados * d) {
 	this->Ti = vector<int>(d->j);
 	this->alocadas = vector<bool>(d->j,false);
 
-	int tempoMaximoEsperado = d->D*10;
+	int tempoMaximoEsperado = d->D*30;// melhorar isso
 	this->tr.resize(tempoMaximoEsperado);
 	for(int t = 0; t< tempoMaximoEsperado; t++){
 		tr[t] = vector<int>(d->tipos);
@@ -64,7 +64,7 @@ void Solucao::alocarAtividade(int j, int ti, int mj) {
 		for(int t = ti_old;t <= tf_old;t++){
 			for(int k = 0; k < d->tipos;k++){
 				if(d->r[j][m_old][k] != 0){
-					verificar_demanda = tr[t][k] == demanda[k];
+					verificar_demanda = tr[t][k] == demanda[k];//obss....s
 					tr[t][k] -= d->r[j][m_old][k];//diminuindo a utilizacao do recurso daquele tempo
 				}
 			}
