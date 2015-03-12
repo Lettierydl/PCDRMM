@@ -55,7 +55,7 @@ Dados * Arquivo::lerInstancia() {
 					this->dados >> j;
 					j+=2;//atividades virtuais
 
-					this->dados >> c >> c;
+					this->dados >> c ;
 					this->dados >> D;
 					d = new Dados(tipos, j, D);
 					break;
