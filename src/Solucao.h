@@ -35,13 +35,17 @@ public:
 	/* Métodos de Incialização */
 	void iniciarSolucaoComModosAleatorios();// inicia a solucao alocando as atividades pela ordem de precedencia, com seus modos aleatorios
 	void iniciarSolucaoComMelhorMakespan();// inicia a solucao alocando as atividades pela ordem de precedencia, com os modos de menor tempo
-	void iniciarSolucaoComMelhorCusto();// inicaiar solucao com menor custo sem alocar novos recursos, com modos que utilizem menos custo
+	void iniciarSolucaoComMelhorCusto();// inicaia a solucao com menor custo sem alocar novos recursos, com modos que utilizem menos custo
+	void iniciarSolucaoComMenorUtilizacao();// inicia a solucao com a menor quantidade de utilizacao de recursos, desconsiderando o custo de utilizacao e o tempo
+	void iniciarSolucaoComMenorUtilizacaoBalanceadaDeRecursos();// balanceia a utilizacao de recursos, desconsiderando o custo de disponibilidade;
 
 	/* Métodos para Verificacao */
 	int verificarTempoInicioCedo(int j);// verifica o mais cedo tempo de inicio (ti) possivel para a atividade j, pelas suas precedencias ja cadastradas
 	int verificarMelhorModoPeloTempo(int j);// verifica o modo que gastará menos tempo, desconsiderando o custo do recurso
 	int verificarMelhorModoPelaUtilizacao(int j);// verifica o modo que utiliza menos recursos, desconsiderando o tempo de duracao da atividade
-
+	int verificarMelhorModoPelaMenorQuantidadeUtilizada(int j);// verifica o modo que utiliza a menor quantidade de recursos, desconsiderando o tempo e custo de utilizacao
+	int verificarMelhorModoPelaMenorQuantidadeUtilizadaDeK(int j, int k);// verifica o modo que utiliza a menor quantidade do recurso k, desconsiderando o tempo e custo de utilizacao
+	int verificarMelhorModoPelaMaiorQuantidadeUtilizadaDeK(int j, int k);
 
 	/* Métodos de Atualização */
 	void atualizarDemanda(int ti, int tf);//atualiada o valor da demanda dos recursos verificando apenas um determinada periodo de tepo da solucao de ti ate tf.
@@ -49,6 +53,9 @@ public:
 	/* Métodos de Calculos */
 	float calcular_custo();
 	int calcular_tempo();
+
+	/*Métodos de Ordenacao*/
+	vector<int> ordenarRecursosPorPrecos();// retorna um veltor com os indices dos recursos ornedados pelo seu custo de utilizacao
 
 	void print();
 

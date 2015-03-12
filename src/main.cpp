@@ -26,15 +26,19 @@ int main(int argc, char **argv) {
 
 	for(int i = 1; i<=1;i++){
 
+		cout <<"instancia "<< i << endl;
+
 		string instancia = "Instancias_Denise";
 		Arquivo arq(instancia, i);
 
 		Dados *d = arq.lerInstancia();
-		d->print();
+//		d->print();
 
 		Solucao *s = new Solucao(d);
 		s->iniciarSolucaoComMelhorMakespan();
 		//s->iniciarSolucaoComMelhorCusto();
+		//s->iniciarSolucaoComMenorUtilizacao();
+		//s->iniciarSolucaoComMenorUtilizacaoBalanceadaDeRecursos();
 		//s->iniciarSolucaoComModosAleatorios();
 
 		s->print();

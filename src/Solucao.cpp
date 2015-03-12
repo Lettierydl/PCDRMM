@@ -146,6 +146,68 @@ int Solucao::verificarMelhorModoPelaUtilizacao(int j){
 	return modo;
 }
 
+int Solucao::verificarMelhorModoPelaMenorQuantidadeUtilizada(int j){
+	int modo = 0;
+
+	float quantidade = 0;
+	for (int k = 0; k < d->tipos; ++k) {// mudar isso por um array que calcula esse custo apena uma vez e guarda
+		quantidade += d->r[j][modo][k];
+	}
+
+	int quantidadeMin = quantidade;
+	for(int i = 0; i< d->M[j]; i++){
+
+		quantidade = 0;
+		for (int k = 0; k < d->tipos; ++k) {// mudar isso por um array que calcula esse custo apena uma vez e guarda
+			quantidade += d->r[j][i][k];
+		}
+
+		if(quantidade <quantidadeMin){
+			quantidadeMin = quantidade;
+			modo = i;
+		}
+	}
+	return modo;
+}
+
+int Solucao::verificarMelhorModoPelaMenorQuantidadeUtilizadaDeK(int j, int k){
+	int modo = 0;
+
+	int quantidade = 0;
+	quantidade += d->r[j][modo][k];
+
+	int quantidadeMin = quantidade;
+	for(int i = 0; i< d->M[j]; i++){
+
+		quantidade = d->r[j][i][k];
+
+		if(quantidade < quantidadeMin){
+			quantidadeMin = quantidade;
+			modo = i;
+		}
+	}
+	return modo;
+}
+
+int Solucao::verificarMelhorModoPelaMaiorQuantidadeUtilizadaDeK(int j, int k){
+	int modo = 0;
+
+	int quantidade = 0;
+	quantidade += d->r[j][modo][k];
+
+	int quantidadeMax = quantidade;
+	for(int i = 0; i < d->M[j]; i++){
+
+		quantidade = d->r[j][i][k];
+
+		if(quantidade > quantidadeMax){
+			quantidadeMax = quantidade;
+			modo = i;
+		}
+	}
+	return modo;
+}
+
 
 
 void Solucao::iniciarSolucaoComModosAleatorios(){
@@ -181,7 +243,80 @@ void Solucao::iniciarSolucaoComMelhorCusto(){
 	}
 }
 
+void Solucao::iniciarSolucaoComMenorUtilizacao(){
+	for(int j = 0 ; j < d->j ; j++){
+		int modo = verificarMelhorModoPelaMenorQuantidadeUtilizada(j);
+		int tini = verificarTempoInicioCedo(j);
 
+		alocarAtividade(j, tini, modo);
+	}
+}
+
+void Solucao::iniciarSolucaoComMenorUtilizacaoBalanceadaDeRecursos(){
+	vector<int> recs (d->tipos);
+	//iniciar as primeiras atividades
+	alocarAtividade(0, 0, 0);
+
+	int modo1 = verificarMelhorModoPelaMaiorQuantidadeUtilizadaDeK(1, 1);
+	alocarAtividade(1, 0, modo1);
+
+	int melhorAtualK = 0;
+	int menorUtilizacaoDeRec = 1000;// intMax
+	for(int k=0; k < d->tipos ; k++){
+
+		recs[k] += d->r[1][modo1][k];
+		cout << recs[k] << "|";
+		if(recs[k] > menorUtilizacaoDeRec){
+			menorUtilizacaoDeRec = recs[k];
+			melhorAtualK = k;
+		}
+
+	}
+	cout << endl << endl;
+
+	for(int j = 0 ; j < d->j ; j++){
+
+		int modo = verificarMelhorModoPelaMaiorQuantidadeUtilizadaDeK(j, melhorAtualK);
+		int tini = verificarTempoInicioCedo(j);
+
+		alocarAtividade(j, tini, modo);
+		for(int k=0; k < d->tipos ; k++){
+			recs[k] += d->r[j][modo][k];
+			cout <<recs[k] << "|";
+			if(recs[k] > menorUtilizacaoDeRec){
+				menorUtilizacaoDeRec = recs[k];
+				melhorAtualK = k;
+			}
+		}
+		cout << endl << endl;
+	}
+
+}
+
+
+
+
+vector<int> Solucao::ordenarRecursosPorPrecos(){
+	vector<int> recs (d->tipos);
+
+	vector <float> custosOrdenados(d->custo_recurso);
+
+	for(int k = 0 ;k < d->tipos ;k++){
+		//custosOrdenados[k] =
+		cout << custosOrdenados[k]<<"|";
+	}cout <<endl << endl;
+
+
+	for(int k = 0 ;k < d->tipos ;k++){
+		int pk = 0;
+		float custoK = d->custo_recurso[k];
+		for(  ; pk < d->tipos ;pk++){
+			if(custoK == custosOrdenados[pk]) break;
+		}
+		recs[pk] = k;
+	}
+	return recs;
+}
 
 
 float Solucao::calcular_custo() {
