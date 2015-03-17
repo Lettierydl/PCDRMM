@@ -9,6 +9,7 @@
 #define ARQUIVO_H
 
 #include "Dados.h"
+#include "Solucao.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -24,9 +25,12 @@ class Arquivo{
 		ifstream dados;
 		ifstream funcao;
 		string nomeArquivo;
+		int numeroInstacia;
 
 		Dados * lerInstancia();
 
+		void gravarTabelaDeResultados(int instacia, float custo, int makespan);
+		void gravarSolucao(int instancia, Solucao * s);
 
 
 		Arquivo(string nomeArquivo, int numero);

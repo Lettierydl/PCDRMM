@@ -8,6 +8,7 @@
 
 #include "Arquivo.h"
 #include "Solucao.h"
+#include "Grafico.h"
 #include <iostream>
 #include "stdlib.h"
 #include <string>
@@ -43,9 +44,10 @@ int main(int argc, char **argv) {
 
 		s->print();
 
-
-
 		//testar solucao, apenas algumas vezes
+
+		/*Grafico g;
+		g.plotarGraficoDaSolucao(s);*/
 
 	}
 

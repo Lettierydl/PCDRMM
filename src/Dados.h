@@ -15,6 +15,8 @@ using namespace std;
 
 class Dados {
 public:
+	int numeroInstacia;//apenas para identificar qual instancia se refere
+
 	int tipos ; // m quatidades de tipos diferentes de recrusos 4
 	int j ; // n quatidades de atividades mais as atividades virtuais
 	int D ; // D data maxima de entrega do projeto

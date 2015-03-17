@@ -222,6 +222,7 @@ void Solucao::iniciarSolucaoComModosAleatorios(){
 
 		alocarAtividade(j, tini, modo);
 	}
+	calcular_valores();
 }
 
 void Solucao::iniciarSolucaoComMelhorMakespan(){
@@ -230,6 +231,7 @@ void Solucao::iniciarSolucaoComMelhorMakespan(){
 		int modo = verificarMelhorModoPeloTempo(j);
 		alocarAtividade(j, tini, modo);
 	}
+	calcular_valores();
 }
 
 void Solucao::iniciarSolucaoComMelhorCusto(){
@@ -241,6 +243,7 @@ void Solucao::iniciarSolucaoComMelhorCusto(){
 
 		alocarAtividade(j, tini, modo);
 	}
+	calcular_valores();
 }
 
 void Solucao::iniciarSolucaoComMenorUtilizacao(){
@@ -250,6 +253,7 @@ void Solucao::iniciarSolucaoComMenorUtilizacao(){
 
 		alocarAtividade(j, tini, modo);
 	}
+	calcular_valores();
 }
 
 void Solucao::iniciarSolucaoComMenorUtilizacaoBalanceadaDeRecursos(){
@@ -290,10 +294,32 @@ void Solucao::iniciarSolucaoComMenorUtilizacaoBalanceadaDeRecursos(){
 		}
 		cout << endl << endl;
 	}
-
+	calcular_valores();
 }
 
 
+void Solucao::calcular_valores(){
+	calcular_custo();
+	calcular_tempo();
+}
+
+float Solucao::calcular_custo() {
+	custo = 0;
+	for (int k = 0; k < d->tipos; ++k) {
+		custo += d->custo_recurso[k] * demanda[k];
+	}
+	return custo;
+}
+
+int Solucao::calcular_tempo() {
+	tempo = 0;
+	for (int j = 0; j < d->j; ++j) {
+		if((Ti[j]+D[j]) > tempo){
+			tempo = (D[j]+Ti[j]);
+		}
+	}
+	return tempo;
+}
 
 
 vector<int> Solucao::ordenarRecursosPorPrecos(){
@@ -316,25 +342,6 @@ vector<int> Solucao::ordenarRecursosPorPrecos(){
 		recs[pk] = k;
 	}
 	return recs;
-}
-
-
-float Solucao::calcular_custo() {
-	custo = 0;
-	for (int k = 0; k < d->tipos; ++k) {
-		custo += d->custo_recurso[k] * demanda[k];
-	}
-	return custo;
-}
-
-int Solucao::calcular_tempo() {
-	tempo = 0;
-	for (int j = 0; j < d->j; ++j) {
-		if((Ti[j]+D[j]) > tempo){
-			tempo = (D[j]+Ti[j]);
-		}
-	}
-	return tempo;
 }
 
 void Solucao::print() {

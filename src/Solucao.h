@@ -51,6 +51,7 @@ public:
 	void atualizarDemanda(int ti, int tf);//atualiada o valor da demanda dos recursos verificando apenas um determinada periodo de tepo da solucao de ti ate tf.
 
 	/* Métodos de Calculos */
+	void calcular_valores();//calcula o custo e o tempo
 	float calcular_custo();
 	int calcular_tempo();
 
