@@ -1494,6 +1494,7 @@ Gnuplot& Gnuplot::plotfile_xy(const std::string &filename,
     // Do the actual plot
     //
     cmd(cmdstr.str());
+
     return *this;
 }
 

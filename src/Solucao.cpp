@@ -8,14 +8,13 @@
 #include "Solucao.h"
 #include "Dados.h"
 #include <iostream>
-#include "stdlib.h"
 #include <string>
 #include <vector>
+#include <limits.h>
+#include <stdio.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-#include <sys/time.h>
-#include <time.h>
+#include <string>
 
 using namespace std;
 
@@ -33,20 +32,43 @@ Solucao::Solucao(Dados * d) {
 	this->D = vector<int>(d->j);
 	this->M = vector<int>(d->j);
 	this->Ti = vector<int>(d->j);
-	this->alocadas = vector<bool>(d->j,false);
+	this->alocadas = vector<bool>(d->j, false);
 
-	int tempoMaximoEsperado = d->D*30;// melhorar isso
+	int tempoMaximoEsperado = d->D * 30; // melhorar isso
 	this->tr.resize(tempoMaximoEsperado);
-	for(int t = 0; t< tempoMaximoEsperado; t++){
+	for (int t = 0; t < tempoMaximoEsperado; t++) {
 		tr[t] = vector<int>(d->tipos);
 	}
 }
 
-void Solucao::atualizarDemanda(int ti, int tf){
-	for(int k = 0; k < d->tipos;k++){
-		for(int t = ti;t <= tf;t++){
-			if(demanda[k] < tr[t][k]){
-				demanda[k] = tr[t][k];// acrescentando a demanda
+Solucao::Solucao(Solucao *s) {
+	this->d = s->d;
+	this->custo = s->custo;
+	this->tempo = s->tempo;
+
+	this->demanda = new int[d->tipos];
+
+	for (int i = 0; i < d->tipos; i++) {
+		demanda[i] = s->demanda[i];
+	}
+
+	this->D = vector<int>(s->D);
+	this->M = vector<int>(s->M);
+	this->Ti = vector<int>(s->Ti);
+	this->alocadas = vector<bool>(s->alocadas);
+
+	int tempoMaximoEsperado = s->tr.size(); // melhorar isso
+	this->tr.resize(tempoMaximoEsperado);
+	for (int t = 0; t < tempoMaximoEsperado; t++) {
+		tr[t] = vector<int>(s->tr[t]);
+	}
+}
+
+void Solucao::atualizarDemanda(int ti, int tf) {
+	for (int k = 0; k < d->tipos; k++) {
+		for (int t = ti; t <= tf; t++) {
+			if (demanda[k] < tr[t][k]) {
+				demanda[k] = tr[t][k]; // acrescentando a demanda
 			}
 		}
 	}
@@ -54,67 +76,80 @@ void Solucao::atualizarDemanda(int ti, int tf){
 
 void Solucao::alocarAtividade(int j, int ti, int mj) {
 
-	if ( this->alocadas[j] ) { // verificar se atividade ja esta alocada
-		int ti_old = Ti[j];// tempo de inicio da atividade ja alocada
-		int m_old = M[j];// modo de execucao antigo de j
-		int tf_old = ti_old + d->d[j][m_old];// tempo de fim da atividade ja alocada
-
+	if (this->alocadas[j]) { // verificar se atividade ja esta alocada
+		int ti_old = Ti[j]; // tempo de inicio da atividade ja alocada
+		int m_old = M[j]; // modo de execucao antigo de j
+		int tf_old = ti_old + d->d[j][m_old]; // tempo de fim da atividade ja alocada
 
 		bool verificar_demanda = false; // flag para saber se ha necessario de verificar alteracao na demanda do recurso
-		for(int t = ti_old;t <= tf_old;t++){
-			for(int k = 0; k < d->tipos;k++){
-				if(d->r[j][m_old][k] != 0){
-					verificar_demanda = tr[t][k] == demanda[k];//obss....s
-					tr[t][k] -= d->r[j][m_old][k];//diminuindo a utilizacao do recurso daquele tempo
+		for (int t = ti_old; t <= tf_old; t++) {
+			for (int k = 0; k < d->tipos; k++) {
+				if (d->r[j][m_old][k] != 0) {
+					verificar_demanda = tr[t][k] == demanda[k]; //obss....s
+					tr[t][k] -= d->r[j][m_old][k]; //diminuindo a utilizacao do recurso daquele tempo
 				}
 			}
 		}
 
-		if(verificar_demanda){// atualizando a demanda pela retirada da atividade
+		if (verificar_demanda) { // atualizando a demanda pela retirada da atividade
 			this->atualizarDemanda(ti_old, tf_old);
 		}
-	}// ao fim desse if a atividade ja foi retirarda e os valores de demanda da solucao estao atualizados
+	} // ao fim desse if a atividade ja foi retirarda e os valores de demanda da solucao estao atualizados
 
 	Ti[j] = ti;
 	M[j] = mj;
 	D[j] = d->d[j][mj];
 	alocadas[j] = true;
 
-	int tf = ti + D[j];// tempo de termino da atividade
+	int tf = ti + D[j]; // tempo de termino da atividade
 
 	bool verificar_demanda = false;
-	for(int t = ti;t <= tf;t++){
-		for(int k = 0; k < d->tipos; k++){
-			if(d->r[j][mj][k] != 0){
-				verificar_demanda = (tr[t][k]+ d->r[j][mj][k]) > demanda[k];// flag para saber se e necessario verificar alteracao na demanda do recurso
-				tr[t][k] += d->r[j][mj][k];//acrescentando a utilizacao do recurso daquele tempo
+	for (int t = ti; t <= tf; t++) {
+		for (int k = 0; k < d->tipos; k++) {
+			if (d->r[j][mj][k] != 0) {
+				verificar_demanda = (tr[t][k] + d->r[j][mj][k]) > demanda[k]; // flag para saber se e necessario verificar alteracao na demanda do recurso
+				tr[t][k] += d->r[j][mj][k]; //acrescentando a utilizacao do recurso daquele tempo
 			}
 		}
 	}
 
-	if(verificar_demanda){// atualizando a demanda pela insercao da atividade
+	if (verificar_demanda) { // atualizando a demanda pela insercao da atividade
 		this->atualizarDemanda(ti, tf);
 	}
 
 }
 
-int Solucao::verificarTempoInicioCedo(int j){
+void Solucao::realocarAtividadesApartirDaAtividade(int j) {
+	int t = Ti[j] + D[j]; //termpo de fim de j
+	for (int j_aux = 0; j_aux < d->j; j_aux++) {
+		//verificar esse if, so funciona se voce retroceder o tempo da atividade j antes
+		//se vc atrazar essa atividade, ele pode nao funcionar
+		if (Ti[j_aux] >= t) {//qualquer alteracao de j so impacta nas atividades que iniciam depois dela
+			int ti_new = verificarTempoInicioCedo(j_aux);//recalcula tempo de inicio de j_aux
+			if (ti_new != Ti[j_aux]) {
+				alocarAtividade(j_aux, ti_new, M[j_aux]);
+			}
+		}
+	}
+}
+
+int Solucao::verificarTempoInicioCedo(int j) {
 	int possivel = 0;
-	for(list<int>::iterator p = d->H[j].begin(); p != d->H[j].end() ;p++ ){
-		if(alocadas[*p]){//atividades que ja foram alocadas
-			if( (Ti[*p]+D[*p]) > possivel ){
-				possivel = (Ti[*p]+D[*p]);
+	for (list<int>::iterator p = d->H[j].begin(); p != d->H[j].end(); p++) {
+		if (alocadas[*p]) { //atividades que ja foram alocadas
+			if ((Ti[*p] + D[*p]) > possivel) {
+				possivel = (Ti[*p] + D[*p]);
 			}
 		}
 	}
 	return possivel;
 }
 
-int Solucao::verificarMelhorModoPeloTempo(int j){
+int Solucao::verificarMelhorModoPeloTempo(int j) {
 	int modo = 0;
 	int duracaoMin = d->d[j][modo];
-	for(int i = 0; i< d->M[j]; i++){
-		if(d->d[j][i] < duracaoMin){
+	for (int i = 0; i < d->M[j]; i++) {
+		if (d->d[j][i] < duracaoMin) {
 			duracaoMin = d->d[j][i];
 			modo = i;
 		}
@@ -122,23 +157,23 @@ int Solucao::verificarMelhorModoPeloTempo(int j){
 	return modo;
 }
 
-int Solucao::verificarMelhorModoPelaUtilizacao(int j){
+int Solucao::verificarMelhorModoPelaUtilizacao(int j) {
 	int modo = 0;
 
 	float utilizacao = 0;
-	for (int k = 0; k < d->tipos; ++k) {// mudar isso por um array que calcula esse custo apena uma vez e guarda
+	for (int k = 0; k < d->tipos; ++k) { // mudar isso por um array que calcula esse custo apena uma vez e guarda
 		utilizacao += d->r[j][modo][k] * d->custo_recurso[k];
 	}
 
 	int utilizacaoMin = utilizacao;
-	for(int i = 0; i< d->M[j]; i++){
+	for (int i = 0; i < d->M[j]; i++) {
 
 		utilizacao = 0;
-		for (int k = 0; k < d->tipos; ++k) {// mudar isso por um array que calcula esse custo apena uma vez e guarda
+		for (int k = 0; k < d->tipos; ++k) { // mudar isso por um array que calcula esse custo apena uma vez e guarda
 			utilizacao += d->r[j][i][k] * d->custo_recurso[k];
 		}
 
-		if(utilizacao < utilizacaoMin){
+		if (utilizacao < utilizacaoMin) {
 			utilizacaoMin = utilizacao;
 			modo = i;
 		}
@@ -146,23 +181,23 @@ int Solucao::verificarMelhorModoPelaUtilizacao(int j){
 	return modo;
 }
 
-int Solucao::verificarMelhorModoPelaMenorQuantidadeUtilizada(int j){
+int Solucao::verificarMelhorModoPelaMenorQuantidadeUtilizada(int j) {
 	int modo = 0;
 
 	float quantidade = 0;
-	for (int k = 0; k < d->tipos; ++k) {// mudar isso por um array que calcula esse custo apena uma vez e guarda
+	for (int k = 0; k < d->tipos; ++k) { // mudar isso por um array que calcula esse custo apena uma vez e guarda
 		quantidade += d->r[j][modo][k];
 	}
 
 	int quantidadeMin = quantidade;
-	for(int i = 0; i< d->M[j]; i++){
+	for (int i = 0; i < d->M[j]; i++) {
 
 		quantidade = 0;
-		for (int k = 0; k < d->tipos; ++k) {// mudar isso por um array que calcula esse custo apena uma vez e guarda
+		for (int k = 0; k < d->tipos; ++k) { // mudar isso por um array que calcula esse custo apena uma vez e guarda
 			quantidade += d->r[j][i][k];
 		}
 
-		if(quantidade <quantidadeMin){
+		if (quantidade < quantidadeMin) {
 			quantidadeMin = quantidade;
 			modo = i;
 		}
@@ -170,18 +205,18 @@ int Solucao::verificarMelhorModoPelaMenorQuantidadeUtilizada(int j){
 	return modo;
 }
 
-int Solucao::verificarMelhorModoPelaMenorQuantidadeUtilizadaDeK(int j, int k){
+int Solucao::verificarMelhorModoPelaMenorQuantidadeUtilizadaDeK(int j, int k) {
 	int modo = 0;
 
 	int quantidade = 0;
 	quantidade += d->r[j][modo][k];
 
 	int quantidadeMin = quantidade;
-	for(int i = 0; i< d->M[j]; i++){
+	for (int i = 0; i < d->M[j]; i++) {
 
 		quantidade = d->r[j][i][k];
 
-		if(quantidade < quantidadeMin){
+		if (quantidade < quantidadeMin) {
 			quantidadeMin = quantidade;
 			modo = i;
 		}
@@ -189,18 +224,18 @@ int Solucao::verificarMelhorModoPelaMenorQuantidadeUtilizadaDeK(int j, int k){
 	return modo;
 }
 
-int Solucao::verificarMelhorModoPelaMaiorQuantidadeUtilizadaDeK(int j, int k){
+int Solucao::verificarMelhorModoPelaMaiorQuantidadeUtilizadaDeK(int j, int k) {
 	int modo = 0;
 
 	int quantidade = 0;
 	quantidade += d->r[j][modo][k];
 
 	int quantidadeMax = quantidade;
-	for(int i = 0; i < d->M[j]; i++){
+	for (int i = 0; i < d->M[j]; i++) {
 
 		quantidade = d->r[j][i][k];
 
-		if(quantidade > quantidadeMax){
+		if (quantidade > quantidadeMax) {
 			quantidadeMax = quantidade;
 			modo = i;
 		}
@@ -208,25 +243,19 @@ int Solucao::verificarMelhorModoPelaMaiorQuantidadeUtilizadaDeK(int j, int k){
 	return modo;
 }
 
-
-
-void Solucao::iniciarSolucaoComModosAleatorios(){
-	for(int j = 0 ; j < d->j ; j++){
+void Solucao::iniciarSolucaoComModosAleatorios() {
+	for (int j = 0; j < d->j; j++) {
 		int tini = verificarTempoInicioCedo(j);
 
-		srand( (unsigned)time(NULL) );
-
 		int modo = rand() % d->M[j];
-
-
 
 		alocarAtividade(j, tini, modo);
 	}
 	calcular_valores();
 }
 
-void Solucao::iniciarSolucaoComMelhorMakespan(){
-	for(int j = 0 ; j < d->j ; j++){
+void Solucao::iniciarSolucaoComMelhorMakespan() {
+	for (int j = 0; j < d->j; j++) {
 		int tini = verificarTempoInicioCedo(j);
 		int modo = verificarMelhorModoPeloTempo(j);
 		alocarAtividade(j, tini, modo);
@@ -234,9 +263,9 @@ void Solucao::iniciarSolucaoComMelhorMakespan(){
 	calcular_valores();
 }
 
-void Solucao::iniciarSolucaoComMelhorCusto(){
-	int tfj = 0;// tempo de termino da ultima atividade
-	for(int j = 0 ; j < d->j ; j++){
+void Solucao::iniciarSolucaoComMelhorCusto() {
+	int tfj = 0; // tempo de termino da ultima atividade
+	for (int j = 0; j < d->j; j++) {
 		int modo = verificarMelhorModoPelaUtilizacao(j);
 		int tini = tfj;
 		tfj = tfj + d->d[j][modo];
@@ -246,8 +275,8 @@ void Solucao::iniciarSolucaoComMelhorCusto(){
 	calcular_valores();
 }
 
-void Solucao::iniciarSolucaoComMenorUtilizacao(){
-	for(int j = 0 ; j < d->j ; j++){
+void Solucao::iniciarSolucaoComMenorUtilizacao() {
+	for (int j = 0; j < d->j; j++) {
 		int modo = verificarMelhorModoPelaMenorQuantidadeUtilizada(j);
 		int tini = verificarTempoInicioCedo(j);
 
@@ -256,8 +285,8 @@ void Solucao::iniciarSolucaoComMenorUtilizacao(){
 	calcular_valores();
 }
 
-void Solucao::iniciarSolucaoComMenorUtilizacaoBalanceadaDeRecursos(){
-	vector<int> recs (d->tipos);
+void Solucao::iniciarSolucaoComMenorUtilizacaoBalanceadaDeRecursos() {
+	vector<int> recs(d->tipos);
 	//iniciar as primeiras atividades
 	alocarAtividade(0, 0, 0);
 
@@ -265,40 +294,36 @@ void Solucao::iniciarSolucaoComMenorUtilizacaoBalanceadaDeRecursos(){
 	alocarAtividade(1, 0, modo1);
 
 	int melhorAtualK = 0;
-	int menorUtilizacaoDeRec = 1000;// intMax
-	for(int k=0; k < d->tipos ; k++){
+	int menorUtilizacaoDeRec = 1000; // intMax
+	for (int k = 0; k < d->tipos; k++) {
 
 		recs[k] += d->r[1][modo1][k];
-		cout << recs[k] << "|";
-		if(recs[k] > menorUtilizacaoDeRec){
+		if (recs[k] > menorUtilizacaoDeRec) {
 			menorUtilizacaoDeRec = recs[k];
 			melhorAtualK = k;
 		}
 
 	}
-	cout << endl << endl;
+	//atividade 0 e 1 ja alocada
+	for (int j = 2; j < d->j; j++) {
 
-	for(int j = 0 ; j < d->j ; j++){
-
-		int modo = verificarMelhorModoPelaMaiorQuantidadeUtilizadaDeK(j, melhorAtualK);
+		int modo = verificarMelhorModoPelaMaiorQuantidadeUtilizadaDeK(j,
+				melhorAtualK);
 		int tini = verificarTempoInicioCedo(j);
 
 		alocarAtividade(j, tini, modo);
-		for(int k=0; k < d->tipos ; k++){
+		for (int k = 0; k < d->tipos; k++) {
 			recs[k] += d->r[j][modo][k];
-			cout <<recs[k] << "|";
-			if(recs[k] > menorUtilizacaoDeRec){
+			if (recs[k] > menorUtilizacaoDeRec) {
 				menorUtilizacaoDeRec = recs[k];
 				melhorAtualK = k;
 			}
 		}
-		cout << endl << endl;
 	}
 	calcular_valores();
 }
 
-
-void Solucao::calcular_valores(){
+void Solucao::calcular_valores() {
 	calcular_custo();
 	calcular_tempo();
 }
@@ -314,30 +339,30 @@ float Solucao::calcular_custo() {
 int Solucao::calcular_tempo() {
 	tempo = 0;
 	for (int j = 0; j < d->j; ++j) {
-		if((Ti[j]+D[j]) > tempo){
-			tempo = (D[j]+Ti[j]);
+		if ((Ti[j] + D[j]) > tempo) {
+			tempo = (D[j] + Ti[j]);
 		}
 	}
 	return tempo;
 }
 
+vector<int> Solucao::ordenarRecursosPorPrecos() {
+	vector<int> recs(d->tipos);
 
-vector<int> Solucao::ordenarRecursosPorPrecos(){
-	vector<int> recs (d->tipos);
+	vector<float> custosOrdenados(d->custo_recurso);
 
-	vector <float> custosOrdenados(d->custo_recurso);
-
-	for(int k = 0 ;k < d->tipos ;k++){
+	for (int k = 0; k < d->tipos; k++) {
 		//custosOrdenados[k] =
-		cout << custosOrdenados[k]<<"|";
-	}cout <<endl << endl;
+		cout << custosOrdenados[k] << "|";
+	}
+	cout << endl << endl;
 
-
-	for(int k = 0 ;k < d->tipos ;k++){
+	for (int k = 0; k < d->tipos; k++) {
 		int pk = 0;
 		float custoK = d->custo_recurso[k];
-		for(  ; pk < d->tipos ;pk++){
-			if(custoK == custosOrdenados[pk]) break;
+		for (; pk < d->tipos; pk++) {
+			if (custoK == custosOrdenados[pk])
+				break;
 		}
 		recs[pk] = k;
 	}
@@ -347,19 +372,24 @@ vector<int> Solucao::ordenarRecursosPorPrecos(){
 void Solucao::print() {
 	cout << "j\t" << "Ti\t" << "M\t" << "D\t" << endl;
 	for (int j = 0; j < d->j; ++j) {
-		cout << j << "\t" << Ti[j] << "\t" << M[j] << "\t" << D[j]
-				<<  endl;
+		cout << j << "\t" << Ti[j] << "\t" << M[j] << "\t" << D[j] << endl;
 	}
 
 	cout << "Demanda: ";
-	for (int k = 0; k< d->tipos; k++){
+	for (int k = 0; k < d->tipos; k++) {
 		cout << this->demanda[k] << " ";
-	}cout << endl;
+	}
+	cout << endl;
 
-	cout << "C:" << calcular_custo() << "\tT:" << this->calcular_tempo() << endl;
+	cout << "C:" << calcular_custo() << "\tT:" << this->calcular_tempo()
+			<< endl;
 }
 
 Solucao::~Solucao() {
-	free(demanda);
-	free(d);
+	//delete demanda;
+	Ti.erase(Ti.begin(), Ti.end());
+	M.erase(M.begin(), M.end());
+	D.erase(D.begin(), D.end());
+	alocadas.erase(alocadas.begin(), alocadas.end());
+	tr.erase(tr.begin(), tr.end());
 }

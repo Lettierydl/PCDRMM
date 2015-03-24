@@ -173,11 +173,11 @@ void Grafico::plotarTrandOFF(vector<float> custo, vector<int> tempo) {
 
 	g1.set_pointsize(3).set_style("points pt 1");
 
-	g1.plot_xy(custo, tempo, "Soluções");
+	g1.plot_xy( tempo, custo,"Soluções");
 
 	g1.set_style("lines lt 2 lc 3");
 
-	g1.plot_xy(custo, tempo, "Curva de Trand-OFF");
+	g1.plot_xy( tempo, custo,"Curva de Trand-OFF");
 
 }
 

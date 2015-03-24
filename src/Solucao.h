@@ -30,7 +30,7 @@ public:
 
 	/* Métodos de Operações Bases */
 	void alocarAtividade(int j, int ti, int mi);// aloca atividade j no tempo de inicio ti, no modo mi, ja faz toda as alteracoes na solucao
-
+	void realocarAtividadesApartirDaAtividade(int j);// realoca atividades que iniciam depois de j, revendo seus tempos de incios mais cedos
 
 	/* Métodos de Incialização */
 	void iniciarSolucaoComModosAleatorios();// inicia a solucao alocando as atividades pela ordem de precedencia, com seus modos aleatorios
@@ -61,9 +61,16 @@ public:
 	void print();
 
 	Solucao(Dados *d);
+	Solucao(Solucao *s);
 	virtual ~Solucao();
 
+};
 
+
+struct SolucaoCompare{
+                bool operator()(Solucao &s1, Solucao &s2)const{
+                    return (s1.tempo < s2.tempo);
+                }
 };
 
 

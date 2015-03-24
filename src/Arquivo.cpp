@@ -62,16 +62,18 @@ Dados * Arquivo::lerInstancia() {
 					break;
 				}
 				case 20: {
-					for (int i = 0; i < d->j; i++, contline++) {
+					for (int j = 0; j < d->j; j++, contline++) {
 						this->dados >> c;
-						this->dados >> d->M[i] ;
-						this->dados >> d->S[i] ;
+						this->dados >> d->M[j] ;
+						int sj=0;// quantidade de sucessores que j tem
+						this->dados >> sj ;
 
 
-						for (int qs = 0; qs < d->S[i]; qs++) {
+						for (int qs = 0; qs < sj; qs++) {
 							int s;
 							this->dados >> s;
-							d->H[s - 1].push_back(i);
+							d->H[s - 1].push_back(j);
+							d->S[j].push_back(s-1);
 						}
 
 						getline(this->dados, linha);

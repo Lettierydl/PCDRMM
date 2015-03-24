@@ -1,5 +1,5 @@
 /*
- * Dados.h
+2 * Dados.h
  *
  *  Created on: 25/11/2014
  *      Author: Leo
@@ -22,7 +22,7 @@ public:
 	int D ; // D data maxima de entrega do projeto
 	vector <int> M;// Mj modos de execulcao da ativiade j
 	vector< list<int> > H;// Hj, precedencia das atividades, a atividade j, tem a lista de atividade que precedem ela
-	vector <int> S; // Sj quantidade de sucessores que j tem
+	vector <list<int> > S; // Sj sucessores de j
 	vector < vector<int> > d;// dji duracao da atividade j(linha) quando execultada no modo i (coluna), j X Mj
 	vector < vector < vector<int> > > r;// rjik, quantidade de recursos, que a atividade j, utiliza no modo i, do tipo k
 	vector<int>disponibilidade;
