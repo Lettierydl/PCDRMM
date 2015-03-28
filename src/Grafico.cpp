@@ -66,64 +66,6 @@ void Grafico::plotarGraficoDaSolucao(Solucao *s) {
 
 	}
 
-	/*
-
-	 Gnuplot g2("Solução");
-
-	 stringstream sr;
-	 sr << "Solução Nº " << s->d->numeroInstacia << "\\nTempo X Recursos";
-
-	 g2.set_title(sr.str());
-
-	 g2.set_xlabel("Tempo");
-	 g2.set_ylabel("Recursos");
-
-	 g2.set_xrange(0, s->tempo+1 ); //espaco mostrado pelo grafico
-	 g2.set_yautoscale();
-
-	 g2.cmd("set style fill transparent solid 0.5 noborder");
-	 g2.cmd("set boxwidth 0.1 absolute");
-
-	 g2.set_grid();
-
-	 std::vector<double> x, y, dj;
-
-	 for (int k = 0; k <= s->d->tipos; k++) {
-	 switch (k) {
-	 case 0:
-	 g2.set_style("boxes linecolor rgb \"red\"");
-	 break;
-
-	 case 1:
-	 g2.set_style("boxes linecolor rgb \"blue\"");
-	 break;
-
-	 case 2:
-	 g2.set_style("boxes linecolor rgb \"green\"");
-	 break;
-
-	 case 3:
-	 g2.set_style("boxes linecolor rgb \"yellow\"");
-	 break;
-	 default:
-	 g2.set_style("boxes linecolor rgb \"black\"");
-	 break;
-	 }
-	 for (int t = 0; t <= s->tempo; t++) {
-	 x.push_back((double) t + (k*0.109) );
-	 y.push_back((double) s->tr[k][t]);
-
-	 stringstream sr;
-	 sr <<""<< k;
-
-	 g2.plot_xy(x,y,"");
-
-	 x.clear(), y.clear();
-	 dj.clear();
-	 }
-	 }
-	 */
-
 }
 
 void Grafico::plotarTrandOFF(list<Solucao> solucoes) {
@@ -152,23 +94,6 @@ void Grafico::plotarTrandOFF(vector<float> custo, vector<int> tempo) {
 	g1.set_xautoscale();
 	g1.set_yautoscale();
 
-	/*
-	stringstream gridx;
-	stringstream gridy;
-	gridx << "set xtics (\"" << tempo[0] << "\"" << tempo[0];
-	gridy << "set ytics (\"" << custo[0] << "\"" << custo[0];
-
-	for (int s = 1; s < custo.size(); s++) {
-		gridx << ",\"" << tempo[s] << "\" " << tempo[s] << " ";
-		gridy << ",\"" << custo[s] << "\" " << custo[s] << " ";
-
-	}
-	gridx << ")";
-	gridy << ")";
-
-	g1.cmd(gridx.str());
-	g1.cmd(gridy.str());*/
-
 	g1.set_grid();
 
 	g1.set_pointsize(3).set_style("points pt 1");
@@ -182,10 +107,8 @@ void Grafico::plotarTrandOFF(vector<float> custo, vector<int> tempo) {
 }
 
 Grafico::Grafico(){
-
 }
 
 Grafico::~Grafico() {
-	// TODO Auto-generated destructor stub
 }
 

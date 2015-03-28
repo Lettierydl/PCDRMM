@@ -323,6 +323,36 @@ void Solucao::iniciarSolucaoComMenorUtilizacaoBalanceadaDeRecursos() {
 	calcular_valores();
 }
 
+list<int> Solucao::calcularCaminhoDoFinalAteInicio(Solucao *s) {
+	int uAtividade = d->j - 1; //ultima atividade processada
+	list<int> caminho;
+
+	do {
+		list<int>::iterator p = d->H[uAtividade].begin();
+		int uAtividadePTerminar = 0; //ultima atividade predecessora de uAtividade a terminar
+
+		for (; p != d->H[uAtividade].end(); p++) {
+			int terminoUAT = s->Ti[uAtividadePTerminar]
+					+ s->D[uAtividadePTerminar];
+			int terminoP = s->Ti[*p] + s->D[*p];
+			if (terminoUAT < terminoP
+					|| (terminoUAT == terminoP
+							&& s->D[uAtividadePTerminar] < s->D[*p])) {
+				uAtividadePTerminar = *p;
+			}
+		}
+		caminho.push_front(uAtividadePTerminar);
+		uAtividade = uAtividadePTerminar;
+	} while (uAtividade != 0);
+
+	/*list<int>::iterator c = caminho.begin();
+	 for (; c != caminho.end(); c++) {
+	 cout << *c<<" - > ";
+	 }cout << endl;*/
+	return caminho;
+
+}
+
 void Solucao::calcular_valores() {
 	calcular_custo();
 	calcular_tempo();
@@ -345,14 +375,16 @@ int Solucao::calcular_tempo() {
 	}
 	return tempo;
 }
-
 vector<int> Solucao::ordenarRecursosPorPrecos() {
+
 	vector<int> recs(d->tipos);
 
 	vector<float> custosOrdenados(d->custo_recurso);
 
+	std::sort(custosOrdenados.begin(), custosOrdenados.end(),
+			std::greater<float>());
+
 	for (int k = 0; k < d->tipos; k++) {
-		//custosOrdenados[k] =
 		cout << custosOrdenados[k] << "|";
 	}
 	cout << endl << endl;
@@ -383,6 +415,25 @@ void Solucao::print() {
 
 	cout << "C:" << calcular_custo() << "\tT:" << this->calcular_tempo()
 			<< endl;
+
+	/*
+	cout << "Custo por Recursos"<< endl;
+	for (int k = 0; k < d->tipos; k++) {
+
+		cout << d->custo_recurso[k] << " | ";
+	}
+	cout << endl;
+
+	for (int t = 0; t <= tempo; t++) {
+		cout << t << "\t";
+		for (int k = 0; k < d->tipos; k++) {
+
+			cout << tr[t][k] << "\t";
+		}
+		cout << endl;
+	}
+	*/
+
 }
 
 Solucao::~Solucao() {

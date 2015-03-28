@@ -25,9 +25,9 @@ using namespace std;
 
 int main(int argc, char **argv) {
 
-	for (int i = 1; i <= 1; i++) {
+	for (int i = 1; i <= 12; i++) {
 
-		cout << "instancia " << i << endl;
+		//	cout << "instancia " << i << endl;
 
 		string instancia = "Instancias_Denise";
 		Arquivo arq(instancia, i);
@@ -35,50 +35,23 @@ int main(int argc, char **argv) {
 		Dados *d = arq.lerInstancia();
 //		d->print();
 
+		Grafico g;
+
 		Heuristicas h(d);
 
-		Solucao *s = new Solucao(d);
+		Solucao *s = h.geneticAlgorithms(100);
 
-
-		s->iniciarSolucaoComMelhorMakespan();
-		h.addFronteiraDePareto(s);
-	//	s->print();
-
-
-
-
-		s = new Solucao(d);
-		s->iniciarSolucaoComMelhorCusto();
-		h.addFronteiraDePareto(s);
-		//s->print();
-
-		s = new Solucao(d);
-		s->iniciarSolucaoComMenorUtilizacao();
-		h.addFronteiraDePareto(s);
-		//s->print();
-
-
-		s = new Solucao(d);
-		s->iniciarSolucaoComMenorUtilizacaoBalanceadaDeRecursos();
-		h.addFronteiraDePareto(s);
-//		s->print();
-
-		for (int i = 0; i < 10; i++) {
-			s = new Solucao(d);
-			s->iniciarSolucaoComModosAleatorios();
-			h.addFronteiraDePareto(s);
-		}
-
-
-		//h.vizinhacaDeModos(s)->print();
-
-		//testar solucao, apenas algumas vezes
-		Grafico g;
 		//g.plotarGraficoDaSolucao(s);
-		g.plotarTrandOFF(h.fronteira);
 
+		cout << s->custo << endl;
+
+		//s->print();
+
+		//h.vizinhacaBalancearUtilizacaoDeRecursos(s)->print();
+
+
+		//g.plotarTrandOFF(h.fronteira);
 	}
-
 
 	return 0;
 }

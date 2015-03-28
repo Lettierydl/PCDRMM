@@ -18,8 +18,6 @@ using namespace std;
 class Grafico {
 public:
 
-
-
 	void plotarGraficoDaSolucao(Solucao *s);
 
 	void plotarTrandOFF(list<Solucao> solucoes);
