@@ -92,8 +92,8 @@ void Solucao::alocarAtividade(int j, int ti, int mj) {
 		}
 
 		if (verificar_demanda) { // atualizando a demanda pela retirada da atividade
-			this->atualizarDemanda(ti_old, tf_old);
-		}
+			//this->atualizarDemanda(ti_old, tf_old);
+		}//this->atualizarDemanda(ti_old, tf_old);
 	} // ao fim desse if a atividade ja foi retirarda e os valores de demanda da solucao estao atualizados
 
 	Ti[j] = ti;
@@ -107,15 +107,11 @@ void Solucao::alocarAtividade(int j, int ti, int mj) {
 	for (int t = ti; t <= tf; t++) {
 		for (int k = 0; k < d->tipos; k++) {
 			if (d->r[j][mj][k] != 0) {
-				verificar_demanda = (tr[t][k] + d->r[j][mj][k]) > demanda[k]; // flag para saber se e necessario verificar alteracao na demanda do recurso
 				tr[t][k] += d->r[j][mj][k]; //acrescentando a utilizacao do recurso daquele tempo
 			}
 		}
 	}
-
-	if (verificar_demanda) { // atualizando a demanda pela insercao da atividade
-		this->atualizarDemanda(ti, tf);
-	}
+	this->atualizarDemanda(ti, tf);
 
 }
 
@@ -424,6 +420,7 @@ void Solucao::print() {
 	}
 	cout << endl;
 
+
 	for (int t = 0; t <= tempo; t++) {
 		cout << t << "\t";
 		for (int k = 0; k < d->tipos; k++) {
@@ -433,6 +430,7 @@ void Solucao::print() {
 		cout << endl;
 	}
 	*/
+
 
 }
 

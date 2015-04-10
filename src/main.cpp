@@ -10,6 +10,7 @@
 #include "Solucao.h"
 #include "Grafico.h"
 #include "Heuristicas.h"
+#include "Teste.h"
 #include <iostream>
 #include "stdlib.h"
 #include <string>
@@ -23,7 +24,10 @@
 
 using namespace std;
 
+
 int main(int argc, char **argv) {
+
+
 
 	for (int i = 1; i <= 12; i++) {
 
@@ -39,11 +43,18 @@ int main(int argc, char **argv) {
 
 		Heuristicas h(d);
 
-		Solucao *s = h.geneticAlgorithms(100);
+		Solucao *s = h.geneticAlgorithms(20);
+		//s->iniciarSolucaoComMelhorMakespan();
+
+		s->calcular_valores();
+		//s->print();
+
+		Teste t(d);
+		t.testarSolucao(s);
 
 		//g.plotarGraficoDaSolucao(s);
 
-		cout << s->custo << endl;
+		cout << s->custo<< endl;
 
 		//s->print();
 
@@ -51,7 +62,13 @@ int main(int argc, char **argv) {
 
 
 		//g.plotarTrandOFF(h.fronteira);
+
 	}
+
+
 
 	return 0;
 }
+
+
+

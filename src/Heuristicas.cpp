@@ -16,9 +16,10 @@ using namespace std;
 
 Solucao * Heuristicas::geneticAlgorithms(int geracoes) {
 	vector<Solucao> populacao; //populacao sempre deve ter um numero par de individuos
+	int tamanhoPopulacao = 20;
 
 	//populacao inicial
-	for (int tam = 0; tam < 6; tam++) {
+	for (int tam = 0; tam < tamanhoPopulacao; tam++) {
 		populacao.push_back(new Solucao(d));
 	}
 
@@ -26,29 +27,42 @@ Solucao * Heuristicas::geneticAlgorithms(int geracoes) {
 	populacao[1].iniciarSolucaoComMelhorMakespan();
 	populacao[2].iniciarSolucaoComMenorUtilizacao();
 	populacao[3].iniciarSolucaoComMenorUtilizacaoBalanceadaDeRecursos();
-	populacao[4].iniciarSolucaoComModosAleatorios();
-	populacao[5].iniciarSolucaoComModosAleatorios();
+
+	for (int tam = 4; tam < tamanhoPopulacao; tam++) {
+		populacao[tam].iniciarSolucaoComModosAleatorios();
+	}
 
 	for (int g = 0; g < geracoes; g++) {
+	/*
+		cout << "Geracao: " << g << ", populacao " << populacao.size();
+		cout << ", Best: " << populacao[0].custo << "|" << populacao[0].tempo
+				<< ", Pior: " << populacao[populacao.size() - 1].custo << "|"
+				<< populacao[populacao.size() - 1].tempo << endl;
+
 
 		/*avaliacao da populacao*/
-		SolucaoCompareAG scp;
-		sort(populacao.begin(), populacao.end(), scp);
+		SolucaoCompareAG sAG;
+		SolucaoComparePorcentagem scp;
+
+		sort(populacao.begin(), populacao.end(), sAG);
 
 		/*
-		for (int i = 0; i < populacao.size(); i++) {
-			cout << populacao[i].tempo << " " << populacao[i].custo << "|";
-		}
-		cout << endl;
-		*/
+		 for (int i = 0; i < populacao.size(); i++) {
+		 cout << populacao[i].tempo << " " << populacao[i].custo << "|";
+		 }
+		 cout << endl;
+		 */
 
 		/*selecao e cruzamento*/
 		vector<Solucao> gerados;
-		for (int ind = 0 ,ind2 = populacao.size()-1; ind < ind2 ; ind++, ind2--) {
-			if(populacao[ind].tempo == populacao[ind2].tempo &&
-			   populacao[ind].custo == populacao[ind].custo){
-				gerados.push_back(cruzamento(populacao[0], populacao[populacao.size()-1]));
-			}else{
+		for (int ind = 0, ind2 = populacao.size() - 1; ind < ind2;
+				ind++, ind2--) {
+			if (populacao[ind].tempo == populacao[ind2].tempo
+					&& populacao[ind].custo == populacao[ind].custo) {
+				gerados.push_back(
+						cruzamento(populacao[0],
+								populacao[populacao.size() - 1]));
+			} else {
 				gerados.push_back(cruzamento(populacao[0], populacao[ind2]));
 			}
 		}
@@ -62,21 +76,49 @@ Solucao * Heuristicas::geneticAlgorithms(int geracoes) {
 			populacao.push_back(gerados[i]);
 		}
 
-		sort(populacao.begin(), populacao.end(), scp);
-	//	cout << "pop " << populacao.size() << endl;
+		sort(populacao.begin(), populacao.end(), sAG);
 
+		//retira individuos identicos
+		/*vector<Solucao>::iterator it = populacao.begin();
+		for (int i = 0; i < populacao.size() - 1; i++, it++) {
+			if (populacao[i].tempo == populacao[i + 1].tempo
+					&& populacao[i].custo == populacao[i + 1].custo) {
+				populacao.erase(it);
+			}
+		}*/
+
+
+		//tamanho populacional crescente
+		/*
 		int ret = populacao.size() * 0.7;
-		for(int ruin = populacao.size() - 1; ruin >= ret  ;ruin--){
+		for (int ruin = populacao.size() - 1; ruin >= ret; ruin--) {
 			populacao.erase(--populacao.end());
 		}
-		if((populacao.size() % 2) != 0){//populacao impar
+		*/
+
+		//populcao  com tamanho fixo tamanhoPopulacao
+		for(int ruin = populacao.size() - 1; populacao.size() != tamanhoPopulacao; ruin--) {
 			populacao.erase(--populacao.end());
 		}
+
+
+
+		if ((populacao.size() % 2) != 0) { //populacao impar
+			populacao.erase(--populacao.end());
+		}
+
+		sort(populacao.begin(), populacao.end(), sAG);
 
 //		cout << "---pop " << populacao.size() << endl<< endl;
 
 		//cout << "geralcao " << g << endl<< endl;
 	}
+
+	for (int i = 0; i < populacao.size(); i++) {
+		addFronteiraDePareto(&populacao[i]);
+		//cout <<populacao[i].tempo  << " " << populacao[i].custo<<" | ";
+	} //cout << endl;
+
 	Solucao * best = new Solucao(populacao[0]);
 	return best;
 
@@ -88,24 +130,25 @@ void Heuristicas::mutar(Solucao s) {
 
 Solucao Heuristicas::cruzamento(Solucao s1, Solucao s2) {
 	Solucao s(d);
-
+	//bool acessoS1 = rand() % 2;
 	for (int j = 0; j < d->j - 1; j++) {
 		bool acessoS1 = rand() % 2;
 		if (acessoS1) {	// o cromossomo da atividade j sera herdado de s1
-			int tic = calcularTempoDeInicioMaisCedoDeJ(&s1, j);
+			int tic = calcularTempoDeInicioMaisCedoDeJ(&s, j);
 			if (s1.Ti[j] >= tic) {	//pode alocar
 				s.alocarAtividade(j, s1.Ti[j], s1.M[j]);
 			} else {// nao pode alocar j em Ti por que vai quebrar a precedencia de j, por isso aloca no menor tempo possivel tic
 				s.alocarAtividade(j, tic, s1.M[j]);
 			}
 		} else {	// o cromossomo da atividade j sera herdado de s2
-			int tic = calcularTempoDeInicioMaisCedoDeJ(&s1, j);
+			int tic = calcularTempoDeInicioMaisCedoDeJ(&s, j);
 			if (s2.Ti[j] >= tic) {	//pode alocar
 				s.alocarAtividade(j, s2.Ti[j], s2.M[j]);
 			} else {// nao pode alocar j em Ti por que vai quebrar a precedencia de j, por isso aloca no menor tempo possivel tic
 				s.alocarAtividade(j, tic, s2.M[j]);
 			}
 		}
+		acessoS1 = !acessoS1;
 	}
 	s.alocarAtividade(d->j - 1, s.calcular_tempo(), 0);
 

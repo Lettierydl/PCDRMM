@@ -9,17 +9,25 @@
 #define TESTE_H_
 
 #include "Solucao.h"
+#include "Dados.h"
 
-namespace std {
+using namespace std ;
 
 class Teste {
 public:
+	Dados*d;
+
 	bool testarSolucao(Solucao * s);
 
-	Teste();
+	bool testePrecedencias(Solucao * s);
+
+	bool testeValorCustoETempo(Solucao * s);
+
+	bool testeSeTodasAtividadesEstaoAlocadas(Solucao * s);
+
+	Teste(Dados *d);
 	virtual ~Teste();
 };
 
-} /* namespace std */
 
 #endif /* TESTE_H_ */

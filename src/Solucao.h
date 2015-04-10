@@ -100,15 +100,15 @@ struct SolucaoCompareAG {//comparacao para guiar o algoritmo genetico
 		}
 		s1.calcular_valores(); s2.calcular_valores();
 
-		int mint = std::min(s1.tempo, s2.tempo);
+		float mint = std::min(s1.tempo, s2.tempo);
 
 		int ts1 = (((mint * 90) / s1.tempo) -100) * -1; // porcentagem de quanto falta para alcancar a data limit do problema
 		int ts2 = (((mint * 90) / s2.tempo) -100) * -1;
 
 		float min = std::min(s1.custo, s2.custo);
 
-		int cs1 = (((min * 100) / s1.custo) - 100) * -1; // porcentagem de quanto esta longe do melhor custo
-		int cs2 = (((min * 100) / s2.custo) - 100) * -1;
+		float cs1 = (((min * 100) / s1.custo) - 100) * -1; // porcentagem de quanto esta longe do melhor custo
+		float cs2 = (((min * 100) / s2.custo) - 100) * -1;
 
 
 		return ((ts1 + cs1) < (ts2 + cs2));

@@ -7,33 +7,110 @@
 
 #include "Teste.h"
 #include "Solucao.h"
+#include <iostream>
+#include "stdlib.h"
+#include <string>
+#include <stdio.h>
+#include <stdlib.h>
 
-namespace std {
+using namespace std;
 
-Teste::Teste() {}
-Teste::~Teste() {}
-
-
-/* metodo que testa se a solucao é valida */
-bool Teste::testarSolucao(Solucao * s){
-	//testar se as relacoes de precedencia entre as atividades estao mantidas
-
-	//testar se os valores da demanda, custo e tempo estao calculados corretamente
-
-	//testar se toda atividade esta alocada em um determinado tempo de inicio e um modo
-
-	/*testar se a atividade gastar o valor (duracao e requerimento de recursos) colocado na solucao,
-	ou seja, se uma atividad j esta alocada com um modo i, então ela vai requerer uma quantidade de recursos
-	e gasta um determinado tempo, ver se esse tempo e essa quantidade estão sendo somados na solucao */
-
-	// caso uma dessas regras falhe, deve ser impresso qual regra falou e se possivel detalhar onde ela falhou
-	// e mesmo que ocorra uma falha, deve ser verificado todas as regas, e so no final retornar false
-
-	return true;
+Teste::Teste(Dados*d) {
+	this->d = d;
+}
+Teste::~Teste() {
 }
 
+/* metodo que testa se a solucao é valida */
+bool Teste::testarSolucao(Solucao * s) {
+	bool valid = true;
 
+	valid &= testeSeTodasAtividadesEstaoAlocadas(s);
 
+	valid &= testeValorCustoETempo(s);
 
+	valid &= testePrecedencias(s);
 
-} /* namespace std */
+	if(s->tempo != d->D){
+		cout <<"Tempo untrapassa a data do projeto T: "<<s->tempo <<", D: " << d->D << endl;
+		valid &= false;
+	}
+
+	if (valid) {
+		//cout << "Solucao viavel" << endl;
+	}
+	return valid;
+}
+
+bool Teste::testePrecedencias(Solucao * s) {
+	bool valid = true;
+	for (int j = 0; j < d->j; j++) {
+		list<int>::iterator pre = d->H[j].begin();
+		for (; pre != d->H[j].end(); pre++) {
+			if (s->Ti[j] < (s->Ti[*pre] + d->d[*pre][s->M[*pre]])) {
+				valid = false;
+
+				cerr << endl << "Erro de Precedencia" << endl;
+				cerr << *pre << " - " << j << endl;
+				cerr << s->Ti[*pre] << " - " << s->Ti[j] << endl;
+			}
+		}
+	}
+	return valid;
+}
+
+bool Teste::testeValorCustoETempo(Solucao * s) {
+
+	vector<int> maiorUtilizacao(d->tipos, 0);
+
+	for (int t = 0; t < s->tempo; t++) {
+		for (int k = 0; k < d->tipos; k++) {
+
+			int utilizacaoK = 0;
+			for (int j = 1; j < d->j; j++) {
+				if (s->Ti[j] <= t && s->Ti[j] + d->d[j][s->M[j]] >= t) { //j esta ativa no tempo t
+					utilizacaoK += d->r[j][s->M[j]][k];
+				}
+			}
+			if (maiorUtilizacao[k] < utilizacaoK) {
+				maiorUtilizacao[k] = utilizacaoK;
+			}
+
+		}
+	}
+
+	float custo = 0;
+	for (int k = 0; k < d->tipos; k++) {
+		custo += maiorUtilizacao[k] * d->custo_recurso[k];
+	}
+
+	if (custo != s->custo) {
+		cerr << "Custo Errado" << endl << "Custo real: " << custo
+				<< ", custo apresentado: " << s->custo << endl;
+	}
+
+	int tempo = s->Ti[0] + d->d[0][s->M[0]];
+	for (int j = 1; j < d->j; j++) {
+		if (tempo < s->Ti[j] + d->d[j][s->M[j]]) {
+			tempo = s->Ti[j] + d->d[j][s->M[j]];
+		}
+	}
+	if (tempo != s->tempo) {
+		cerr << "Tempo Errado" << endl << "Tempo real: " << tempo
+				<< ", tempo apresentado: " << s->tempo << endl;
+	}
+
+	return tempo == s->tempo && custo == s->custo;
+}
+
+bool Teste::testeSeTodasAtividadesEstaoAlocadas(Solucao * s) {
+	bool valid = true;
+	for (int j = 0; j < d->j; j++) {
+		if (s->D[j] != d->d[j][s->M[j]] || s->Ti[j] > s->tempo
+				|| !s->alocadas[j] || s->M[j] < 0 || s->M[j] >= d->M[j]) {
+			cerr << "Atividade nao alocada " << j << endl;
+			valid = false;
+		}
+	}
+	return valid;
+}
