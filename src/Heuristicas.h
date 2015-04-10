@@ -36,6 +36,7 @@ public:
 
 	/*Algoritmos Geneticos*/
 	Solucao cruzamento(Solucao s1, Solucao s2);
+	vector<Solucao> cruzamento2(Solucao s1, Solucao s2);
 	void mutar(Solucao s1);
 
 	/*Cauculos*/
@@ -47,5 +48,8 @@ public:
 
 	Heuristicas(Dados *d);
 	virtual ~Heuristicas();
+
+private:
+	vector<Solucao> selecaoECruzamento(const vector<Solucao>& populacao);
 };
 

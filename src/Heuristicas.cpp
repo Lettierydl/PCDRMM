@@ -33,39 +33,21 @@ Solucao * Heuristicas::geneticAlgorithms(int geracoes) {
 	}
 
 	for (int g = 0; g < geracoes; g++) {
-	/*
-		cout << "Geracao: " << g << ", populacao " << populacao.size();
-		cout << ", Best: " << populacao[0].custo << "|" << populacao[0].tempo
-				<< ", Pior: " << populacao[populacao.size() - 1].custo << "|"
-				<< populacao[populacao.size() - 1].tempo << endl;
+		/*
+		 cout << "Geracao: " << g << ", populacao " << populacao.size();
+		 cout << ", Best: " << populacao[0].custo << "|" << populacao[0].tempo
+		 << ", Pior: " << populacao[populacao.size() - 1].custo << "|"
+		 << populacao[populacao.size() - 1].tempo << endl;
 
 
-		/*avaliacao da populacao*/
+		 /*avaliacao da populacao*/
 		SolucaoCompareAG sAG;
 		SolucaoComparePorcentagem scp;
 
 		sort(populacao.begin(), populacao.end(), sAG);
 
-		/*
-		 for (int i = 0; i < populacao.size(); i++) {
-		 cout << populacao[i].tempo << " " << populacao[i].custo << "|";
-		 }
-		 cout << endl;
-		 */
-
 		/*selecao e cruzamento*/
-		vector<Solucao> gerados;
-		for (int ind = 0, ind2 = populacao.size() - 1; ind < ind2;
-				ind++, ind2--) {
-			if (populacao[ind].tempo == populacao[ind2].tempo
-					&& populacao[ind].custo == populacao[ind].custo) {
-				gerados.push_back(
-						cruzamento(populacao[0],
-								populacao[populacao.size() - 1]));
-			} else {
-				gerados.push_back(cruzamento(populacao[0], populacao[ind2]));
-			}
-		}
+		vector<Solucao> gerados = selecaoECruzamento(populacao);
 
 		/*mutacao*/
 		for (int i = 0; i < gerados.size(); i++) {
@@ -80,28 +62,26 @@ Solucao * Heuristicas::geneticAlgorithms(int geracoes) {
 
 		//retira individuos identicos
 		/*vector<Solucao>::iterator it = populacao.begin();
-		for (int i = 0; i < populacao.size() - 1; i++, it++) {
-			if (populacao[i].tempo == populacao[i + 1].tempo
-					&& populacao[i].custo == populacao[i + 1].custo) {
-				populacao.erase(it);
-			}
-		}*/
-
+		 for (int i = 0; i < populacao.size() - 1; i++, it++) {
+		 if (populacao[i].tempo == populacao[i + 1].tempo
+		 && populacao[i].custo == populacao[i + 1].custo) {
+		 populacao.erase(it);
+		 }
+		 }*/
 
 		//tamanho populacional crescente
 		/*
-		int ret = populacao.size() * 0.7;
-		for (int ruin = populacao.size() - 1; ruin >= ret; ruin--) {
-			populacao.erase(--populacao.end());
-		}
-		*/
+		 int ret = populacao.size() * 0.7;
+		 for (int ruin = populacao.size() - 1; ruin >= ret; ruin--) {
+		 populacao.erase(--populacao.end());
+		 }
+		 */
 
 		//populcao  com tamanho fixo tamanhoPopulacao
-		for(int ruin = populacao.size() - 1; populacao.size() != tamanhoPopulacao; ruin--) {
+		for (int ruin = populacao.size() - 1;
+				populacao.size() != tamanhoPopulacao; ruin--) {
 			populacao.erase(--populacao.end());
 		}
-
-
 
 		if ((populacao.size() % 2) != 0) { //populacao impar
 			populacao.erase(--populacao.end());
@@ -122,6 +102,55 @@ Solucao * Heuristicas::geneticAlgorithms(int geracoes) {
 	Solucao * best = new Solucao(populacao[0]);
 	return best;
 
+}
+
+vector<Solucao> Heuristicas::selecaoECruzamento(
+		const vector<Solucao>& populacao) {
+	/*
+	 for (int i = 0; i < populacao.size(); i++) {
+	 cout << populacao[i].tempo << " " << populacao[i].custo << "|";
+	 }
+	 cout << endl;
+	 */
+
+	/*selecao e cruzamento*/
+
+	vector<Solucao> gerados;
+
+	switch (1) {
+	case 2: //cruzamento 2
+		for (int ind = 0, ind2 = populacao.size() - 1; ind < ind2;
+				ind++, ind2--) {
+			if (populacao[ind].tempo == populacao[ind2].tempo
+					&& populacao[ind].custo == populacao[ind].custo) {
+				vector<Solucao> filhos = cruzamento2(populacao[0],
+						populacao[populacao.size() - 1]);
+				gerados.push_back(filhos[0]);
+				gerados.push_back(filhos[1]);
+			} else {
+				vector<Solucao> filhos = cruzamento2(populacao[0],
+						populacao[ind2]);
+				gerados.push_back(filhos[0]);
+				gerados.push_back(filhos[1]);
+			}
+		}
+		break;
+	default: //cruzamento aleatorio
+		for (int ind = 0, ind2 = populacao.size() - 1; ind < ind2;
+				ind++, ind2--) {
+			if (populacao[ind].tempo == populacao[ind2].tempo
+					&& populacao[ind].custo == populacao[ind].custo) {
+				gerados.push_back(
+						cruzamento(populacao[0],
+								populacao[populacao.size() - 1]));
+			} else {
+				gerados.push_back(cruzamento(populacao[0], populacao[ind2]));
+			}
+		}
+		break;
+	}
+
+	return gerados;
 }
 
 void Heuristicas::mutar(Solucao s) {
@@ -148,11 +177,59 @@ Solucao Heuristicas::cruzamento(Solucao s1, Solucao s2) {
 				s.alocarAtividade(j, tic, s2.M[j]);
 			}
 		}
-		acessoS1 = !acessoS1;
 	}
 	s.alocarAtividade(d->j - 1, s.calcular_tempo(), 0);
 
 	return s;
+}
+
+vector<Solucao> Heuristicas::cruzamento2(Solucao s1, Solucao s2) {
+	vector<Solucao> filhos;
+	Solucao f1(d);
+	Solucao f2(d);
+	filhos.push_back(f1);
+	filhos.push_back(f2);
+
+	bool acessoS1 = rand() % 2;
+	for (int j = 0; j < d->j - 1; j++) {
+
+		if (acessoS1) {	// o cromossomo da atividade j sera herdado de s1
+			int ticF1 = calcularTempoDeInicioMaisCedoDeJ(&f1, j);
+			int ticF2 = calcularTempoDeInicioMaisCedoDeJ(&f2, j);
+			if (s1.Ti[j] >= ticF1) {	//F1 receberar cromossomo de S1
+				f1.alocarAtividade(j, s1.Ti[j], s1.M[j]);
+			} else {// nao pode alocar j em Ti por que vai quebrar a precedencia de j, por isso aloca no menor tempo possivel tic
+				f1.alocarAtividade(j, ticF1, s1.M[j]);
+			}
+
+			if (s1.Ti[j] >= ticF2) {	//F2 receberar cromossomo de S1
+				f2.alocarAtividade(j, s1.Ti[j], s1.M[j]);
+			} else {// nao pode alocar j em Ti por que vai quebrar a precedencia de j, por isso aloca no menor tempo possivel tic
+				f2.alocarAtividade(j, ticF2, s1.M[j]);
+			}
+
+		} else {	// o cromossomo da atividade j sera herdado de s2
+
+			int ticF1 = calcularTempoDeInicioMaisCedoDeJ(&f1, j);
+			int ticF2 = calcularTempoDeInicioMaisCedoDeJ(&f2, j);
+			if (s2.Ti[j] >= ticF1) {	//F1 receberar cromossomo de S2
+				f1.alocarAtividade(j, s2.Ti[j], s2.M[j]);
+			} else {// nao pode alocar j em Ti por que vai quebrar a precedencia de j, por isso aloca no menor tempo possivel tic
+				f1.alocarAtividade(j, ticF1, s2.M[j]);
+			}
+
+			if (s2.Ti[j] >= ticF2) {	//F2 receberar cromossomo de S2
+				f2.alocarAtividade(j, s2.Ti[j], s2.M[j]);
+			} else {// nao pode alocar j em Ti por que vai quebrar a precedencia de j, por isso aloca no menor tempo possivel tic
+				f2.alocarAtividade(j, ticF2, s2.M[j]);
+			}
+		}
+		acessoS1 = !acessoS1;
+	}
+	f1.alocarAtividade(d->j - 1, f1.calcular_tempo(), 0);
+	f2.alocarAtividade(d->j - 1, f2.calcular_tempo(), 0);
+
+	return filhos;
 }
 
 bool Heuristicas::addFronteiraDePareto(Solucao *s) {
