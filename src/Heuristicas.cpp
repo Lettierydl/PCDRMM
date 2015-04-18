@@ -27,20 +27,30 @@ Solucao * Heuristicas::geneticAlgorithms(int geracoes) {
 	populacao[1].iniciarSolucaoComMelhorMakespan();
 	populacao[2].iniciarSolucaoComMenorUtilizacao();
 	populacao[3].iniciarSolucaoComMenorUtilizacaoBalanceadaDeRecursos();
+	populacao[4].iniciarSolucaoComModosAleatoriosDentroDaDataLimite();
 
-	for (int tam = 4; tam < tamanhoPopulacao; tam++) {
-		populacao[tam].iniciarSolucaoComModosAleatorios();
+	for (int tam = 5; tam < tamanhoPopulacao; tam++) {
+		populacao[tam].iniciarSolucaoComModosAleatoriosDentroDaDataLimite();
+		populacao[tam++].iniciarSolucaoComModosAleatorios();
 	}
 
 	for (int g = 0; g < geracoes; g++) {
+		//criterio de parada por populacao identica
+		if (populacao[0].custo == populacao[populacao.size() - 1].custo
+				&& populacao[0].tempo
+						== populacao[populacao.size() - 1].tempo) {
+			//cout << "parou na geracao " << g << endl;
+			break;
+		}
+
 		/*
 		 cout << "Geracao: " << g << ", populacao " << populacao.size();
 		 cout << ", Best: " << populacao[0].custo << "|" << populacao[0].tempo
 		 << ", Pior: " << populacao[populacao.size() - 1].custo << "|"
 		 << populacao[populacao.size() - 1].tempo << endl;
+		 */
 
-
-		 /*avaliacao da populacao*/
+		/*avaliacao da populacao*/
 		SolucaoCompareAG sAG;
 		SolucaoComparePorcentagem scp;
 
@@ -49,9 +59,18 @@ Solucao * Heuristicas::geneticAlgorithms(int geracoes) {
 		/*selecao e cruzamento*/
 		vector<Solucao> gerados = selecaoECruzamento(populacao);
 
+		/*
+
+		 for (int i = 0; i < populacao.size(); i++) {
+		 if (populacao[i].tempo == 0) {
+		 cerr << "llll" << endl;
+		 }
+		 }
+		 */
+
 		/*mutacao*/
 		for (int i = 0; i < gerados.size(); i++) {
-			mutar(gerados[i]);
+			//mutar(gerados[i]);
 		}
 
 		for (int i = 0; i < gerados.size(); i++) {
@@ -59,15 +78,6 @@ Solucao * Heuristicas::geneticAlgorithms(int geracoes) {
 		}
 
 		sort(populacao.begin(), populacao.end(), sAG);
-
-		//retira individuos identicos
-		/*vector<Solucao>::iterator it = populacao.begin();
-		 for (int i = 0; i < populacao.size() - 1; i++, it++) {
-		 if (populacao[i].tempo == populacao[i + 1].tempo
-		 && populacao[i].custo == populacao[i + 1].custo) {
-		 populacao.erase(it);
-		 }
-		 }*/
 
 		//tamanho populacional crescente
 		/*
@@ -96,40 +106,36 @@ Solucao * Heuristicas::geneticAlgorithms(int geracoes) {
 
 	for (int i = 0; i < populacao.size(); i++) {
 		addFronteiraDePareto(&populacao[i]);
-		//cout <<populacao[i].tempo  << " " << populacao[i].custo<<" | ";
-	} //cout << endl;
+		//	cout << populacao[i].tempo << " " << populacao[i].custo << " | ";
+	}
+	//cout << endl;
 
 	Solucao * best = new Solucao(populacao[0]);
 	return best;
 
 }
 
-vector<Solucao> Heuristicas::selecaoECruzamento(
-		const vector<Solucao>& populacao) {
-	/*
-	 for (int i = 0; i < populacao.size(); i++) {
-	 cout << populacao[i].tempo << " " << populacao[i].custo << "|";
-	 }
-	 cout << endl;
-	 */
-
+vector<Solucao> Heuristicas::selecaoECruzamento(vector<Solucao> & populacao) {
 	/*selecao e cruzamento*/
-
 	vector<Solucao> gerados;
 
 	switch (1) {
 	case 2: //cruzamento 2
-		for (int ind = 0, ind2 = populacao.size() - 1; ind < ind2;
-				ind++, ind2--) {
-			if (populacao[ind].tempo == populacao[ind2].tempo
-					&& populacao[ind].custo == populacao[ind].custo) {
+		for (int ind2 = populacao.size() - 1; ind2 > 0; ind2--) {
+			if (populacao[0].tempo == populacao[ind2].tempo
+					&& populacao[0].custo == populacao[ind2].custo) {
+				if (populacao[0].tempo == populacao[populacao.size() - 1].tempo
+						&& populacao[0].custo
+								== populacao[populacao.size() - 1].custo) {
+					break; // populacao identica
+				}
 				vector<Solucao> filhos = cruzamento2(populacao[0],
 						populacao[populacao.size() - 1]);
 				gerados.push_back(filhos[0]);
 				gerados.push_back(filhos[1]);
 			} else {
 				vector<Solucao> filhos = cruzamento2(populacao[0],
-						populacao[ind2]);
+						populacao[ind2]); // o erro esta aqui
 				gerados.push_back(filhos[0]);
 				gerados.push_back(filhos[1]);
 			}
@@ -155,6 +161,59 @@ vector<Solucao> Heuristicas::selecaoECruzamento(
 
 void Heuristicas::mutar(Solucao s) {
 	//usar vizinhancas para tentar melhorar a solucao
+	Solucao * vizinha = vnd(&s);
+	if (vizinha->tempo <= s.tempo && vizinha->custo < s.custo) { // vizinha melhorou
+	//delete &s;
+		cout << "mutou de " << s.tempo << " | " << s.custo;
+		cout << ", para " << vizinha->tempo << " | " << vizinha->custo << endl
+				<< endl;
+		s = new Solucao(vizinha);
+
+	} else {
+		delete vizinha;
+	}
+}
+
+Solucao* Heuristicas::vnd(Solucao* inicial) {
+	SolucaoCompareAG sAG;
+	Solucao * best = new Solucao(inicial);
+	Solucao * v;
+	while (true) {
+		v = this->vizinhacaBalancearUtilizacaoDeRecursos(inicial);
+		if (v->tempo > best->tempo || v->custo >= best->custo) {
+			v = this->vizinhacaDeModos(inicial);
+			if (v->tempo > best->tempo || v->custo >= best->custo) {
+				v = this->vizinhacaDeslocamentoTemporal(inicial);
+				if (v->tempo > best->tempo || v->custo >= best->custo) {
+					v = this->vizinhacaDeslocarParaDireita(inicial);
+					if (v->tempo > best->tempo || v->custo >= best->custo) {
+						delete v;
+						break;
+					} else {
+						delete best;
+						best = v;
+						continue;
+					}
+				} else {
+					delete best;
+					best = v;
+					continue;
+				}
+			} else {
+				delete best;
+				best = v;
+				continue;
+			}
+		} else {
+			delete best;
+			best = v;
+			continue;
+		}
+
+	}
+
+	return best;
+
 }
 
 Solucao Heuristicas::cruzamento(Solucao s1, Solucao s2) {
@@ -179,16 +238,14 @@ Solucao Heuristicas::cruzamento(Solucao s1, Solucao s2) {
 		}
 	}
 	s.alocarAtividade(d->j - 1, s.calcular_tempo(), 0);
+	s.calcular_custo();
 
 	return s;
 }
 
 vector<Solucao> Heuristicas::cruzamento2(Solucao s1, Solucao s2) {
-	vector<Solucao> filhos;
 	Solucao f1(d);
 	Solucao f2(d);
-	filhos.push_back(f1);
-	filhos.push_back(f2);
 
 	bool acessoS1 = rand() % 2;
 	for (int j = 0; j < d->j - 1; j++) {
@@ -202,10 +259,10 @@ vector<Solucao> Heuristicas::cruzamento2(Solucao s1, Solucao s2) {
 				f1.alocarAtividade(j, ticF1, s1.M[j]);
 			}
 
-			if (s1.Ti[j] >= ticF2) {	//F2 receberar cromossomo de S1
-				f2.alocarAtividade(j, s1.Ti[j], s1.M[j]);
+			if (s2.Ti[j] >= ticF2) {	//F2 receberar cromossomo de S2
+				f2.alocarAtividade(j, s2.Ti[j], s2.M[j]);
 			} else {// nao pode alocar j em Ti por que vai quebrar a precedencia de j, por isso aloca no menor tempo possivel tic
-				f2.alocarAtividade(j, ticF2, s1.M[j]);
+				f2.alocarAtividade(j, ticF2, s2.M[j]);
 			}
 
 		} else {	// o cromossomo da atividade j sera herdado de s2
@@ -218,16 +275,23 @@ vector<Solucao> Heuristicas::cruzamento2(Solucao s1, Solucao s2) {
 				f1.alocarAtividade(j, ticF1, s2.M[j]);
 			}
 
-			if (s2.Ti[j] >= ticF2) {	//F2 receberar cromossomo de S2
-				f2.alocarAtividade(j, s2.Ti[j], s2.M[j]);
+			if (s1.Ti[j] >= ticF2) {	//F2 receberar cromossomo de S1
+				f2.alocarAtividade(j, s1.Ti[j], s1.M[j]);
 			} else {// nao pode alocar j em Ti por que vai quebrar a precedencia de j, por isso aloca no menor tempo possivel tic
-				f2.alocarAtividade(j, ticF2, s2.M[j]);
+				f2.alocarAtividade(j, ticF2, s1.M[j]);
 			}
 		}
 		acessoS1 = !acessoS1;
 	}
 	f1.alocarAtividade(d->j - 1, f1.calcular_tempo(), 0);
 	f2.alocarAtividade(d->j - 1, f2.calcular_tempo(), 0);
+
+	f1.calcular_custo();
+	f2.calcular_custo();
+
+	vector<Solucao> filhos;
+	filhos.push_back(f1);
+	filhos.push_back(f2);
 
 	return filhos;
 }
@@ -287,7 +351,7 @@ Solucao * Heuristicas::vizinhacaBalancearUtilizacaoDeRecursos(Solucao * s) {
 								s1->alocarAtividade(j, new_t, m);
 								if (s1->calcular_custo() < best->custo) {//melhorou
 									delete best;
-									cout << "Melhorou" << endl;
+									//cout << "Melhorou" << endl;
 									best = s1;	//melhorou
 								} else {	// volta a alocacao como estava
 									s1->alocarAtividade(j, t, m_old);
@@ -368,26 +432,24 @@ Solucao* Heuristicas::vizinhacaDeslocamentoTemporal(Solucao*s) {
 			 }*/
 		}
 
-		int timt = tft - s1->D[j];		//tempo de inicio mais tarde nesse modo
-		int ti_old = s1->Ti[j];
-		int m_old = d->M[j];
-		for (int t = tic; t <= timt; t++) {
-			if (ti_old != t) {	// nao repete verificacao da solucao atual
-				for (int m = 0; m < d->M[j]; m++) {
-					if (m_old != m) {
-						s1->alocarAtividade(j, t, m);
-						if (s1->calcular_custo() < best->custo) {
-							cout << "\n\n\n\n melhorou de " << s1->custo
-									<< " para " << best->custo << endl;
-							delete best;
-							best = s1;
-						} else {
-							s1->alocarAtividade(j, ti_old, s->M[j]);
-						}
-					}
+		for (int m = 0; m < d->M[j]; m++) {
+			int timt = tft - s1->D[j];	//tempo de inicio mais tarde nesse modo
+			int ti_old = s1->Ti[j];
+			int m_old = d->M[j];
+			for (int t = tic; t <= timt; t++) {
+
+				s1->alocarAtividade(j, t, m);
+				if (s1->calcular_custo() < best->custo) {
+					cout << "\n\n\n\n melhorou de " << s1->custo << " para "
+							<< best->custo << endl;
+					delete best;
+					best = s1;
+				} else {
+					s1->alocarAtividade(j, ti_old, s->M[j]);
 				}
 
 			}
+
 		}
 
 	}

@@ -10,12 +10,15 @@
 
 #include <list>
 #include <vector>
+#include <map>
+#include <set>
 
 using namespace std;
 
 class Dados {
 public:
 	int numeroInstacia;//apenas para identificar qual instancia se refere
+
 
 	int tipos ; // m quatidades de tipos diferentes de recrusos 4
 	int j ; // n quatidades de atividades mais as atividades virtuais
@@ -27,6 +30,8 @@ public:
 	vector < vector < vector<int> > > r;// rjik, quantidade de recursos, que a atividade j, utiliza no modo i, do tipo k
 	vector<int>disponibilidade;
 	vector <float>custo_recurso;// custo de cada recurso para ser utilizado na funcao c();
+
+	map<int , set<int > >G;//grafo que demarca a relacao de precedencia das atividades;
 
 
 	void print();

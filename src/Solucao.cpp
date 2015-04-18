@@ -76,25 +76,7 @@ void Solucao::atualizarDemanda(int ti, int tf) {
 
 void Solucao::alocarAtividade(int j, int ti, int mj) {
 
-	if (this->alocadas[j]) { // verificar se atividade ja esta alocada
-		int ti_old = Ti[j]; // tempo de inicio da atividade ja alocada
-		int m_old = M[j]; // modo de execucao antigo de j
-		int tf_old = ti_old + d->d[j][m_old]; // tempo de fim da atividade ja alocada
-
-		bool verificar_demanda = false; // flag para saber se ha necessario de verificar alteracao na demanda do recurso
-		for (int t = ti_old; t <= tf_old; t++) {
-			for (int k = 0; k < d->tipos; k++) {
-				if (d->r[j][m_old][k] != 0) {
-					verificar_demanda = tr[t][k] == demanda[k]; //obss....s
-					tr[t][k] -= d->r[j][m_old][k]; //diminuindo a utilizacao do recurso daquele tempo
-				}
-			}
-		}
-
-		if (verificar_demanda) { // atualizando a demanda pela retirada da atividade
-			//this->atualizarDemanda(ti_old, tf_old);
-		}//this->atualizarDemanda(ti_old, tf_old);
-	} // ao fim desse if a atividade ja foi retirarda e os valores de demanda da solucao estao atualizados
+	desalocar(j); //desaloca a atividade caso ela ja esteja alocada
 
 	Ti[j] = ti;
 	M[j] = mj;
@@ -129,12 +111,47 @@ void Solucao::realocarAtividadesApartirDaAtividade(int j) {
 	}
 }
 
+void Solucao::desalocar(int j) {
+	if (this->alocadas[j]) { // verificar se atividade ja esta alocada
+		int ti_old = Ti[j]; // tempo de inicio da atividade ja alocada
+		int m_old = M[j]; // modo de execucao antigo de j
+		int tf_old = ti_old + d->d[j][m_old]; // tempo de fim da atividade ja alocada
+
+		bool verificar_demanda = false; // flag para saber se ha necessario de verificar alteracao na demanda do recurso
+		for (int t = ti_old; t <= tf_old; t++) {
+			for (int k = 0; k < d->tipos; k++) {
+				if (d->r[j][m_old][k] != 0) {
+					verificar_demanda = tr[t][k] == demanda[k]; //obss....s
+					tr[t][k] -= d->r[j][m_old][k]; //diminuindo a utilizacao do recurso daquele tempo
+				}
+			}
+		}
+		this->atualizarDemanda(ti_old, tf_old);
+	}
+	Ti[j] = 0;
+	M[j] = 0;
+	D[j] = 0;
+	alocadas[j] = false;
+}
+
 int Solucao::verificarTempoInicioCedo(int j) {
 	int possivel = 0;
 	for (list<int>::iterator p = d->H[j].begin(); p != d->H[j].end(); p++) {
 		if (alocadas[*p]) { //atividades que ja foram alocadas
 			if ((Ti[*p] + D[*p]) > possivel) {
 				possivel = (Ti[*p] + D[*p]);
+			}
+		}
+	}
+	return possivel;
+}
+
+int Solucao::verificarTempoFimTarde(int j) { //dentro da data limite D
+	int possivel = d->D;
+	for (list<int>::iterator s = d->S[j].begin(); s != d->S[j].end(); s++) {
+		if (alocadas[*s]) { //atividades que ja foram alocadas
+			if (Ti[*s] < possivel) {
+				possivel = Ti[*s];
 			}
 		}
 	}
@@ -240,12 +257,62 @@ int Solucao::verificarMelhorModoPelaMaiorQuantidadeUtilizadaDeK(int j, int k) {
 }
 
 void Solucao::iniciarSolucaoComModosAleatorios() {
+	srand((unsigned) time(NULL));
 	for (int j = 0; j < d->j; j++) {
 		int tini = verificarTempoInicioCedo(j);
 
 		int modo = rand() % d->M[j];
 
 		alocarAtividade(j, tini, modo);
+	}
+	calcular_valores();
+}
+
+void Solucao::iniciarSolucaoComModosAleatoriosDentroDaDataLimite() {
+	srand((unsigned) time(NULL));
+	for (int j = d->j - 1; j >= 0; j--) {
+		int tft = verificarTempoFimTarde(j);
+
+		int modo = rand() % d->M[j];
+		int bestModo = verificarMelhorModoPeloTempo(j);
+		int ti = tft - d->d[j][modo];
+		int tiBest = tft - d->d[j][bestModo];
+
+		if (d->d[j][modo] <= tft) {
+			alocarAtividade(j, tft - d->d[j][modo], modo);
+		} else if (d->d[j][bestModo] <= tft) { // verificar se trocando o modo dar para alocar
+			alocarAtividade(j, tft - d->d[j][bestModo], bestModo);
+		} else { // realoca todos os sucessores tentando diminuir o tft
+			list<int>::iterator su = d->S[j].begin();
+			for (; su != d->S[j].end(); su++) {
+				if (d->d[j][bestModo] > Ti[*su]) {
+					int bestModoSu = verificarMelhorModoPeloTempo(*su);
+					int tftSu = verificarTempoFimTarde(*su);
+					alocarAtividade(*su, tftSu - d->d[*su][bestModoSu],
+							bestModoSu);
+				}
+			}
+			int new_tft = verificarTempoFimTarde(j);
+			if (d->d[j][bestModo] <= new_tft) {
+				alocarAtividade(j, new_tft - d->d[j][bestModo], bestModo);
+			} else {
+				alocarAtividade(j, 0, bestModo);
+
+				for (int newJ = j; newJ < d->j - 1; newJ++) {
+					list<int>::iterator su = d->S[newJ].begin();
+					for (; su != d->S[newJ].end(); su++) {
+						if (Ti[newJ] + D[newJ] > Ti[*su]) {
+							int bestModoSu = verificarMelhorModoPeloTempo(*su);
+							int tiSu = verificarTempoInicioCedo(*su);
+							alocarAtividade(*su, tiSu, bestModoSu);
+						}
+
+					}
+				}
+
+			}
+
+		}
 	}
 	calcular_valores();
 }
@@ -381,11 +448,6 @@ vector<int> Solucao::ordenarRecursosPorPrecos() {
 			std::greater<float>());
 
 	for (int k = 0; k < d->tipos; k++) {
-		cout << custosOrdenados[k] << "|";
-	}
-	cout << endl << endl;
-
-	for (int k = 0; k < d->tipos; k++) {
 		int pk = 0;
 		float custoK = d->custo_recurso[k];
 		for (; pk < d->tipos; pk++) {
@@ -413,24 +475,23 @@ void Solucao::print() {
 			<< endl;
 
 	/*
-	cout << "Custo por Recursos"<< endl;
-	for (int k = 0; k < d->tipos; k++) {
+	 cout << "Custo por Recursos"<< endl;
+	 for (int k = 0; k < d->tipos; k++) {
 
-		cout << d->custo_recurso[k] << " | ";
-	}
-	cout << endl;
+	 cout << d->custo_recurso[k] << " | ";
+	 }
+	 cout << endl;
 
 
-	for (int t = 0; t <= tempo; t++) {
-		cout << t << "\t";
-		for (int k = 0; k < d->tipos; k++) {
+	 for (int t = 0; t <= tempo; t++) {
+	 cout << t << "\t";
+	 for (int k = 0; k < d->tipos; k++) {
 
-			cout << tr[t][k] << "\t";
-		}
-		cout << endl;
-	}
-	*/
-
+	 cout << tr[t][k] << "\t";
+	 }
+	 cout << endl;
+	 }
+	 */
 
 }
 

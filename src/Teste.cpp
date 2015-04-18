@@ -75,7 +75,10 @@ bool Teste::testeValorCustoETempo(Solucao * s) {
 			if (maiorUtilizacao[k] < utilizacaoK) {
 				maiorUtilizacao[k] = utilizacaoK;
 			}
-
+			if(maiorUtilizacao[k] != s->tr[t][k]){
+			//	cerr <<"utilizacao contabilizada errada no tempo "<<t <<" do recurso " << k<< endl;
+			//	cerr <<"valor correto "<<maiorUtilizacao[k] <<", valor apresentado " << s->tr[t][k]<< endl;
+			}
 		}
 	}
 

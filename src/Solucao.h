@@ -29,9 +29,11 @@ public:
 	/* Métodos de Operações Bases */
 	void alocarAtividade(int j, int ti, int mi); // aloca atividade j no tempo de inicio ti, no modo mi, ja faz toda as alteracoes na solucao
 	void realocarAtividadesApartirDaAtividade(int j); // realoca atividades que iniciam depois de j, revendo seus tempos de incios mais cedos
+	void desalocar(int j);
 
 	/* Métodos de Incialização */
 	void iniciarSolucaoComModosAleatorios(); // inicia a solucao alocando as atividades pela ordem de precedencia, com seus modos aleatorios
+	void iniciarSolucaoComModosAleatoriosDentroDaDataLimite(); // inicia a solucao alocando as atividades pela ordem de precedencia, com seus modos aleatorios
 	void iniciarSolucaoComMelhorMakespan(); // inicia a solucao alocando as atividades pela ordem de precedencia, com os modos de menor tempo
 	void iniciarSolucaoComMelhorCusto(); // inicaia a solucao com menor custo sem alocar novos recursos, com modos que utilizem menos custo
 	void iniciarSolucaoComMenorUtilizacao(); // inicia a solucao com a menor quantidade de utilizacao de recursos, desconsiderando o custo de utilizacao e o tempo
@@ -39,6 +41,7 @@ public:
 
 	/* Métodos para Verificacao */
 	int verificarTempoInicioCedo(int j); // verifica o mais cedo tempo de inicio (ti) possivel para a atividade j, pelas suas precedencias ja cadastradas
+	int verificarTempoFimTarde(int j); // verifica o tempo de fim mais tarde da ativiade j verificando seus sucessores e dentro do tempo limite para o projeto d->D
 	int verificarMelhorModoPeloTempo(int j); // verifica o modo que gastará menos tempo, desconsiderando o custo do recurso
 	int verificarMelhorModoPelaUtilizacao(int j); // verifica o modo que utiliza menos recursos, desconsiderando o tempo de duracao da atividade
 	int verificarMelhorModoPelaMenorQuantidadeUtilizada(int j); // verifica o modo que utiliza a menor quantidade de recursos, desconsiderando o tempo e custo de utilizacao

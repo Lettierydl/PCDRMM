@@ -19,7 +19,7 @@ void Grafico::plotarGraficoDaSolucao(Solucao *s) {
 	Gnuplot g1("Solução");
 
 	stringstream ss;
-	ss << "Solução Nº " << s->d->numeroInstacia << "\\nTempo X Atividade";
+	ss << "Solução Nº " << s->d->numeroInstacia << "\\nTempo X Atividade\\n"<< s->tempo << " X "<< s->custo ;
 
 	g1.set_title(ss.str());
 
@@ -46,6 +46,7 @@ void Grafico::plotarGraficoDaSolucao(Solucao *s) {
 
 	g1.cmd(gridx.str());
 	g1.set_grid();
+
 
 	for (int j = 1; j < s->d->j; j++) {
 		x.push_back((double) j);

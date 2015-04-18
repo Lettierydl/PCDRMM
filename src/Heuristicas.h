@@ -25,7 +25,8 @@ public:
 	Solucao* grasp(int iteracoes, float alfa );//GRASP recebe o número de construcoes que ele faz e o fator aleatorio alfa 0..1
 
 	/*algoritmos de busca local*/
-	Solucao* vnd(Solucao *inicial, list<Solucao (*)(Solucao *)> vizinhancas);// VND que recebe a solucao inicial, e uma lista de metodos de vizinhacas
+	Solucao* vnd(Solucao *inicial);// VND que recebe a solucao inicial e realiza uma busca local com as vizinhancas tentando melhorar a solucao
+
 
 	/*vizinhancas*/
 
@@ -37,6 +38,7 @@ public:
 	/*Algoritmos Geneticos*/
 	Solucao cruzamento(Solucao s1, Solucao s2);
 	vector<Solucao> cruzamento2(Solucao s1, Solucao s2);
+
 	void mutar(Solucao s1);
 
 	/*Cauculos*/
@@ -50,6 +52,6 @@ public:
 	virtual ~Heuristicas();
 
 private:
-	vector<Solucao> selecaoECruzamento(const vector<Solucao>& populacao);
+	vector<Solucao> selecaoECruzamento(vector<Solucao>& populacao);
 };
 

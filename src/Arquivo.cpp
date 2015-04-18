@@ -74,6 +74,7 @@ Dados * Arquivo::lerInstancia() {
 							this->dados >> s;
 							d->H[s - 1].push_back(j);
 							d->S[j].push_back(s-1);
+							d->G[j].insert(s-1);
 						}
 
 						getline(this->dados, linha);
