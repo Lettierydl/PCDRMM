@@ -10,6 +10,7 @@
 
 #include "Dados.h"
 #include <vector>
+#include <algorithm>
 
 class Solucao {
 public:
@@ -70,14 +71,14 @@ public:
 };
 
 struct SolucaoCompare {
-	bool operator()(Solucao &s1, Solucao &s2) const {
+	bool operator()(Solucao const&s1, Solucao const&s2) const {
 		return (s1.tempo < s2.tempo);
 	}
 };
 
 struct SolucaoComparePorcentagem {
-	bool operator()(Solucao &s1, Solucao &s2) const {
-		s1.calcular_valores(); s2.calcular_valores();
+	bool operator()(Solucao const&s1, Solucao const&s2) const {
+		//s1.calcular_valores(); s2.calcular_valores();
 
 		int mint = std::min(s1.tempo, s2.tempo);
 
@@ -95,13 +96,13 @@ struct SolucaoComparePorcentagem {
 };
 
 struct SolucaoCompareAG {//comparacao para guiar o algoritmo genetico
-	bool operator()(Solucao &s1, Solucao &s2) const {
+	bool operator()(Solucao const&s1, Solucao const&s2) const {
 		if(s1.tempo == s1.d->D && s2.tempo != s2.d->D){
 			return true;
 		}else if (s2.tempo == s2.d->D && s1.tempo != s1.d->D){
 			return false;
 		}
-		s1.calcular_valores(); s2.calcular_valores();
+		//s1.calcular_valores(); s2.calcular_valores();
 
 		float mint = std::min(s1.tempo, s2.tempo);
 
