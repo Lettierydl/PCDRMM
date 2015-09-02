@@ -27,6 +27,15 @@ public:
 	vector<bool> alocadas; // vetor que diz se a atividade j esta alocada
 	vector<vector<int> > tr; // matriz de tipo de recurso k por tempo t , onde o conteúdo int é a quantidade utilizada de recurso to tipo k no tempo t.
 
+
+	/* Atributos do PSO */
+	vector<int> v; // velocidade
+	vector<int> x; // novo deslocamento da posicao
+	Solucao* pbest;
+	Solucao* gbest;
+
+
+
 	/* Métodos de Operações Bases */
 	void alocarAtividade(int j, int ti, int mi); // aloca atividade j no tempo de inicio ti, no modo mi, ja faz toda as alteracoes na solucao
 	void realocarAtividadesApartirDaAtividade(int j); // realoca atividades que iniciam depois de j, revendo seus tempos de incios mais cedos
@@ -42,7 +51,8 @@ public:
 
 	/* Métodos para Verificacao */
 	int verificarTempoInicioCedo(int j); // verifica o mais cedo tempo de inicio (ti) possivel para a atividade j, pelas suas precedencias ja cadastradas
-	int verificarTempoFimTarde(int j); // verifica o tempo de fim mais tarde da ativiade j verificando seus sucessores e dentro do tempo limite para o projeto d->D
+	int verificarTempoInicioTarde(int j); // verifica o tempo de inicio mais tarde da ativiade j verificando seus sucessores e dentro do tempo limite para o projeto d->D
+	int verificarTempoInicioTardeForaD(int j);
 	int verificarMelhorModoPeloTempo(int j); // verifica o modo que gastará menos tempo, desconsiderando o custo do recurso
 	int verificarMelhorModoPelaUtilizacao(int j); // verifica o modo que utiliza menos recursos, desconsiderando o tempo de duracao da atividade
 	int verificarMelhorModoPelaMenorQuantidadeUtilizada(int j); // verifica o modo que utiliza a menor quantidade de recursos, desconsiderando o tempo e custo de utilizacao

@@ -12,8 +12,8 @@
 #include "Heuristicas.h"
 #include "Teste.h"
 #include <iostream>
-#include "stdlib.h"
 #include <string>
+#include "stdlib.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -28,8 +28,10 @@ void bateriaDeTestesComValores();
 
 int main(int argc, char **argv) {
 
-	bateriaDeTestesComValores();
-	return 0;
+	//bateriaDeTestesComValores();
+	//return 0;
+	vector<float> tempos(12, 0);
+		vector<float> valores(12, 0);
 
 	for (int i = 1; i <= 1; i++) {
 
@@ -39,31 +41,42 @@ int main(int argc, char **argv) {
 		Arquivo arq(instancia, i);
 
 		Dados *d = arq.lerInstancia();
+
 //		d->print();
+
+
+		Solucao *s1 = new Solucao(d);
+		s1->iniciarSolucaoComMelhorCusto();
+		d->D = s1->tempo;
 
 		Grafico g;
 
 		Heuristicas h(d);
+		h.pso(10);
 
 		clock_t start_time;
 		start_time = clock();
 
-		Solucao *s = h.geneticAlgorithms(20); // new Solucao(d);//
-		//s->iniciarSolucaoComModosAleatoriosDentroDaDataLimite();
+//		Solucao *s = h.pso(50); // new Solucao(d);//
 
 		double time_in_seconds = (clock() - start_time)
 				/ (double) CLOCKS_PER_SEC;
 
+		tempos[i-1] = time_in_seconds;
+	//	valores[i-1] = s->custo;
+
+
 		//printf("tempo decorrido: %.2f s\n", time_in_seconds);
 
 		Teste t(d);
-		t.testarSolucao(s);
+		//t.testarSolucao(s);
 
 		//s->print();
 
 		//g.plotarGraficoDaSolucao(s);
 
-		cout << s->custo << endl;
+		//cout << s->custo << endl;
+		//cout << s->tempo << endl;
 
 		//s->print();
 
@@ -72,6 +85,11 @@ int main(int argc, char **argv) {
 		//g.plotarTrandOFF(h.fronteira);
 
 	}
+
+	for (int i = 0; i < 12; i++) {
+		//	printf("%.2f\n" ,valores[i] );
+	}
+
 	return 0;
 }
 
@@ -84,7 +102,7 @@ void bateriaDeTestesComValores() {
 	vector<float> mediaTempo(12, 0);
 	vector<float> piorTempo(12, 0);
 
-	int repeticoes = 500;
+	int repeticoes = 100;
 	vector <map<float, int> >  modaCusto(12);
 	vector <map<float, int> > modaTempo(12);
 
@@ -97,6 +115,10 @@ void bateriaDeTestesComValores() {
 			Arquivo arq(instancia, i);
 
 			Dados *d = arq.lerInstancia();
+
+			Solucao *cus = new Solucao(d);
+			cus->iniciarSolucaoComMelhorCusto();
+			d->D = cus->tempo;
 
 			Heuristicas h(d);
 

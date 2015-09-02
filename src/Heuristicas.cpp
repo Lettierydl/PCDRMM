@@ -7,13 +7,130 @@
 
 #include "Heuristicas.h"
 #include "Solucao.h"
+#include "AlgAux.h"
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
 #include <algorithm>
+#include <climits>
+
 
 using namespace std;
+
+
+list<Solucao> Heuristicas::pso(int epocas){
+	int tamanhoPopulacao = 50;
+	int maxVparticula = 5;
+	int minVpartucula = -5;
+	list<Solucao> fronteira;// gbests
+	vector<Solucao> enxame;
+	srand(time(NULL));
+
+	//populacao inicial
+		for (int tam = 0; tam < tamanhoPopulacao; tam++) {
+			enxame.push_back(new Solucao(d));
+		}
+		enxame[0].iniciarSolucaoComMelhorCusto();
+		enxame[1].iniciarSolucaoComMelhorMakespan();
+		enxame[2].iniciarSolucaoComMenorUtilizacao();
+		enxame[3].iniciarSolucaoComMenorUtilizacaoBalanceadaDeRecursos();
+		enxame[4].iniciarSolucaoComModosAleatoriosDentroDaDataLimite();
+		for (int tam = 5; tam < tamanhoPopulacao; tam++) {
+			enxame[tam].iniciarSolucaoComModosAleatoriosDentroDaDataLimite();
+		}
+
+
+		for(int p = 0; p < tamanhoPopulacao; p++){
+			addFronteiraDeParetoPSO(&enxame[p], fronteira);// definicao de gbests e pbests
+			enxame[p].v = vector<int> (d->j*2);
+
+			enxame[p].v[0] = 0;
+			enxame[p].v[d->j] = 0;
+
+			enxame[p].v[d->j-1] = 0;
+			enxame[p].v[(d->j-1)*2] = 0;
+			for(int pos = 1; pos < d->j-1; pos++){// velocidades iniciais aleatorias
+
+				int max, min, mmax, mmin, vpos, vmod;
+
+				min = enxame[p].verificarTempoInicioCedo(pos) - enxame[p].Ti[pos];
+				max = enxame[p].verificarTempoInicioTardeForaD(pos) - enxame[p].Ti[pos];
+
+			//	cout <<"pos:"<<pos << " < "<<min<<" , "<< max<<" > rand = "<<ra << endl;
+				//srand(time(NULL));
+
+				vpos = rand() % ((max - min)+1) + min;
+
+				if(d->M[pos] > 1){
+					//cout <<d->M[pos] <<", " << enxame[p].M[pos] << endl;
+					mmin = 0 - enxame[p].M[pos];
+					mmax = (d->M[pos]-1) - enxame[p].M[pos];
+					//srand(time(NULL));
+					vmod = rand() % ((mmax - mmin)+1) + mmin;
+				}else{
+					vmod = 0;
+				}
+
+				if(vpos > maxVparticula){// limites de velocidade
+					vpos = maxVparticula;
+				}else if(vpos < minVpartucula){
+					vpos = minVpartucula;
+				}
+
+				enxame[p].v[pos] = vpos;
+				enxame[p].v[pos+d->j] = vmod;
+			}
+		}
+
+		list<Solucao>::iterator ft = fronteira.end();
+		list<Solucao>::iterator ft2 = fronteira.end();
+		for (ft--; ft != fronteira.begin(); ft--, ft2--) { // setar pbest dos que estao na fronteira
+			ft2->pbest = &*ft;
+		}
+		ft->pbest = &*ft2;
+
+
+		// ft é o gbest de todos
+		for(int p = 0; p < tamanhoPopulacao; p++){
+			enxame[p].gbest = &*ft;//seta o gbest de todos incluseve o do gbest como ele mesmo
+		}
+
+
+		// depois que tiver a nova posicao de todos os elementos de j Xi, entao deve verificar
+		// numericamente se a relacao de precedencia nao vai ser quebrada
+		//ex 1 -> 2,
+		// X1 = +2 e Ti[1] = 3 e D[1] = 2
+		// X2 = -1 e Ti[2] = 6 e D[2] = nao importa
+		// (X1 + Ti[1] + D[1]) <= (Ti[2] + X2)
+
+		for(int e = 0; e < epocas ;e++){
+		//atualizar posicao e velecidade (pela formula)
+// implementar um metodo que faca isso, seguir ideias e formulas do caderno
+			...
+
+			// primeiro atualiza os valores da posicao
+			for(int p = 0; p < tamanhoPopulacao; p++){
+
+			}
+
+		//verificar novo gbest e pbests
+
+		}
+
+		for(int p = 0; p < tamanhoPopulacao; p++){
+			cout <<p <<" [ ";
+			for(int pos = 0; pos < (d->j)*2; pos++){
+				cout << enxame[p].v[pos] << " ";
+			}
+			cout <<" ]" <<endl;
+		}
+
+		return fronteira;
+
+}
+
+
 
 Solucao * Heuristicas::geneticAlgorithms(int geracoes) {
 	vector<Solucao> populacao; //populacao sempre deve ter um numero par de individuos
@@ -32,7 +149,7 @@ Solucao * Heuristicas::geneticAlgorithms(int geracoes) {
 
 	for (int tam = 5; tam < tamanhoPopulacao; tam++) {
 		populacao[tam].iniciarSolucaoComModosAleatoriosDentroDaDataLimite();
-		populacao[tam++].iniciarSolucaoComModosAleatorios();
+		populacao[tam].iniciarSolucaoComModosAleatorios();
 	}
 
 	for (int g = 0; g < geracoes; g++) {
@@ -41,7 +158,7 @@ Solucao * Heuristicas::geneticAlgorithms(int geracoes) {
 				&& populacao[0].tempo
 						== populacao[populacao.size() - 1].tempo) {
 			//cout << "parou na geracao " << g << endl;
-			break;
+			//break;
 		}
 
 		/*
@@ -103,6 +220,10 @@ Solucao * Heuristicas::geneticAlgorithms(int geracoes) {
 //		cout << "---pop " << populacao.size() << endl<< endl;
 
 		//cout << "geralcao " << g << endl<< endl;
+		for (int i = 0; i < populacao.size(); i++) {
+			addFronteiraDePareto(&populacao[i]);
+			//	cout << populacao[i].tempo << " " << populacao[i].custo << " | ";
+		}
 	}
 
 	for (int i = 0; i < populacao.size(); i++) {
@@ -295,6 +416,45 @@ vector<Solucao> Heuristicas::cruzamento2(Solucao s1, Solucao s2) {
 	filhos.push_back(f2);
 
 	return filhos;
+}
+
+bool Heuristicas::addFronteiraDeParetoPSO(Solucao *s,  list<Solucao> fronteira){
+// define os pbest das solucoes que nao estao na fronteira
+// falta setar o pbest do cara que ta na fronteira como um que tambem esta na fronteira
+
+	list<Solucao>::iterator ft = fronteira.begin();
+		for (; ft != fronteira.end(); ft++) {
+			if (s->tempo < ft->tempo && s->custo < ft->custo) { // s domina ft
+				ft->pbest = s;
+				//coloca s e retira ft
+				*ft = s;
+				for (ft++; ft != fronteira.end(); ft++) {//retirar as outras solucao que s domina
+					if (s->tempo < ft->tempo && s->custo < ft->custo) {
+						s->pbest = &*ft;
+						fronteira.erase(ft);
+					}
+				}
+
+				SolucaoCompare sc;
+				fronteira.sort(sc);
+				return true;
+			}
+
+			if (s->tempo > ft->tempo && s->custo > ft->custo) {		// ft domina s
+			// s e descartada, pois ja tem uma melhor do que s em tempo e em custo na fronteira
+				s->pbest = &*ft;
+				return false;
+			}
+
+		}
+
+		// caso nao ocoreu nenhuma dominacao entao s deve ser colocado na fronteira
+		fronteira.push_back(s);
+		SolucaoCompare sc;
+		fronteira.sort(sc);
+
+		return true;
+
 }
 
 bool Heuristicas::addFronteiraDePareto(Solucao *s) {

@@ -15,10 +15,10 @@
 
 using namespace std;
 
-
 Dados::Dados(int tipos, int j, int d):tipos(tipos), j(j), D(d),
 		M(j), S(j), H(j), r(j), d(j), custo_recurso(j), disponibilidade(tipos){
 }
+
 void Dados::print(){
 	cout << "J | D |Tipos"<< endl;
 	cout << j << " | "<< D << " | "<< tipos << endl;

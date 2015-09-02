@@ -147,8 +147,30 @@ int Solucao::verificarTempoInicioCedo(int j) {
 	return possivel;
 }
 
-int Solucao::verificarTempoFimTarde(int j) { //dentro da data limite D
+
+int Solucao::verificarTempoInicioTardeForaD(int j) { //fora do limite D
+	int possivel = INT_MAX;
+
+	if(j == d->j){
+		return possivel;
+	}
+	for (list<int>::iterator s = d->S[j].begin(); s != d->S[j].end(); s++) {
+		if (alocadas[*s]) { //atividades que ja foram alocadas
+			if (Ti[*s] < possivel) {
+				possivel = Ti[*s];
+			}
+		}
+	}
+
+	return possivel;
+}
+
+int Solucao::verificarTempoInicioTarde(int j) { //dentro da data limite D
 	int possivel = d->D;
+
+	if(j == d->j){
+		return possivel;
+	}
 	for (list<int>::iterator s = d->S[j].begin(); s != d->S[j].end(); s++) {
 		if (alocadas[*s]) { //atividades que ja foram alocadas
 			if (Ti[*s] < possivel) {
@@ -258,7 +280,7 @@ int Solucao::verificarMelhorModoPelaMaiorQuantidadeUtilizadaDeK(int j, int k) {
 }
 
 void Solucao::iniciarSolucaoComModosAleatorios() {
-	srand((unsigned) time(NULL));
+	//srand((unsigned) time(NULL));
 	for (int j = 0; j < d->j; j++) {
 		int tini = verificarTempoInicioCedo(j);
 
@@ -270,9 +292,9 @@ void Solucao::iniciarSolucaoComModosAleatorios() {
 }
 
 void Solucao::iniciarSolucaoComModosAleatoriosDentroDaDataLimite() {
-	srand((unsigned) time(NULL));
+	//srand((unsigned) time(NULL));
 	for (int j = d->j - 1; j >= 0; j--) {
-		int tft = verificarTempoFimTarde(j);
+		int tft = verificarTempoInicioTarde(j);
 
 		int modo = rand() % d->M[j];
 		int bestModo = verificarMelhorModoPeloTempo(j);
@@ -288,12 +310,12 @@ void Solucao::iniciarSolucaoComModosAleatoriosDentroDaDataLimite() {
 			for (; su != d->S[j].end(); su++) {
 				if (d->d[j][bestModo] > Ti[*su]) {
 					int bestModoSu = verificarMelhorModoPeloTempo(*su);
-					int tftSu = verificarTempoFimTarde(*su);
+					int tftSu = verificarTempoInicioTarde(*su);
 					alocarAtividade(*su, tftSu - d->d[*su][bestModoSu],
 							bestModoSu);
 				}
 			}
-			int new_tft = verificarTempoFimTarde(j);
+			int new_tft = verificarTempoInicioTarde(j);
 			if (d->d[j][bestModo] <= new_tft) {
 				alocarAtividade(j, new_tft - d->d[j][bestModo], bestModo);
 			} else {
@@ -328,11 +350,9 @@ void Solucao::iniciarSolucaoComMelhorMakespan() {
 }
 
 void Solucao::iniciarSolucaoComMelhorCusto() {
-	int tfj = 0; // tempo de termino da ultima atividade
 	for (int j = 0; j < d->j; j++) {
 		int modo = verificarMelhorModoPelaUtilizacao(j);
-		int tini = tfj;
-		tfj = tfj + d->d[j][modo];
+		int tini = verificarTempoInicioCedo(j);
 
 		alocarAtividade(j, tini, modo);
 	}
@@ -501,6 +521,6 @@ Solucao::~Solucao() {
 	Ti.erase(Ti.begin(), Ti.end());
 	M.erase(M.begin(), M.end());
 	D.erase(D.begin(), D.end());
-	alocadas.erase(alocadas.begin(), alocadas.end());
+	alocadas.clear();
 	tr.erase(tr.begin(), tr.end());
 }
