@@ -30,9 +30,10 @@ public:
 
 	/* Atributos do PSO */
 	vector<int> v; // velocidade
-	vector<int> x; // novo deslocamento da posicao
-	Solucao* pbest;
-	Solucao* gbest;
+	vector<int> v_new; // nova velocidade
+	//vector<int> x_new; // nova posicao (novo tempo de incio)
+	Solucao * pbest;
+	Solucao * gbest;
 
 
 
@@ -78,11 +79,28 @@ public:
 	Solucao(Solucao *s);
 	virtual ~Solucao();
 
+	bool operator < (Solucao const&s1)  {
+			if(s1.tempo ==  this->tempo){
+				return (this->tempo < s1.tempo);
+			}else{
+				//return (s1.custo < s2.custo);
+				return (this->custo < s1.custo);
+			}
+
+		}
+
+
 };
 
 struct SolucaoCompare {
 	bool operator()(Solucao const&s1, Solucao const&s2) const {
-		return (s1.tempo < s2.tempo);
+		if(s1.tempo ==  s2.tempo){
+			return (s1.tempo < s2.tempo);
+		}else{
+			//return (s1.custo < s2.custo);
+			return (s1.custo < s2.custo);
+		}
+
 	}
 };
 

@@ -24,6 +24,10 @@ Solucao::Solucao(Dados * d) {
 	this->custo = 0;
 	this->tempo = 0;
 
+	/*PSO*/
+	this->pbest = NULL;
+	this->gbest = NULL;
+
 	this->demanda = new int[d->tipos];
 
 	for (int i = 0; i < d->tipos; i++) {
@@ -443,7 +447,7 @@ void Solucao::calcular_valores() {
 }
 
 float Solucao::calcular_custo() {
-	custo = 0;
+	this->custo = 0;
 	for (int k = 0; k < d->tipos; ++k) {
 		custo += d->custo_recurso[k] * demanda[k];
 	}
@@ -451,13 +455,13 @@ float Solucao::calcular_custo() {
 }
 
 int Solucao::calcular_tempo() {
-	tempo = 0;
+	this->tempo = 0;
 	for (int j = 0; j < d->j; ++j) {
 		if ((Ti[j] + D[j]) > tempo) {
 			tempo = (D[j] + Ti[j]);
 		}
 	}
-	return tempo;
+	return this->tempo;
 }
 vector<int> Solucao::ordenarRecursosPorPrecos() {
 

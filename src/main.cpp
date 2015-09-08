@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
 		double time_in_seconds = (clock() - start_time)
 				/ (double) CLOCKS_PER_SEC;
 
-		tempos[i-1] = time_in_seconds;
+		//tempos[i-1] = time_in_seconds;
 	//	valores[i-1] = s->custo;
 
 
