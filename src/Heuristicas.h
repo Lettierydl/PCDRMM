@@ -25,6 +25,7 @@ public:
 	void addFronteiraDeParetoPSO(vector<Solucao> *enxame, list<Solucao*> *gbests);//metodo que analiza solucao, e adiciona a variavel gbests com a ideia da fronteira de pareto
 	void atualizarPosicoes(int tamanhoPopulacao, vector<Solucao>* enxame);
 	void atualizarVelocidades(int tamanhoPopulacao, vector<Solucao>* enxame, float w, float c1, float c2, int maxVparticula, int minVpartucula);
+	void atualizarPbestGbest(int tamanhoPopulacao, vector<Solucao>* enxame);
 
 	/*algoritmos de construcao*/
 	Solucao* geneticAlgorithms(int geracoes);//Algoritmos Geneticos, constroe populacoes ate acabar as geracoes

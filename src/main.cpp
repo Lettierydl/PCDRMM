@@ -44,15 +44,16 @@ int main(int argc, char **argv) {
 
 //		d->print();
 
-
+		/*
 		Solucao *s1 = new Solucao(d);
 		s1->iniciarSolucaoComMelhorCusto();
 		d->D = s1->tempo;
+		*/
 
 		Grafico g;
 
 		Heuristicas h(d);
-		h.pso(10);
+		h.pso(50);
 
 		clock_t start_time;
 		start_time = clock();
@@ -81,6 +82,8 @@ int main(int argc, char **argv) {
 		//s->print();
 
 		//h.vizinhacaBalancearUtilizacaoDeRecursos(s)->print();
+		//Solucao *ss = h.fronteira.be;
+		//g.plotarGraficoDaSolucao(ss);
 
 		//g.plotarTrandOFF(h.fronteira);
 

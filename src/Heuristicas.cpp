@@ -7,6 +7,7 @@
 
 #include "Heuristicas.h"
 #include "Solucao.h"
+#include "Grafico.h"
 #include "AlgAux.h"
 #include <iostream>
 #include <stdio.h>
@@ -31,12 +32,14 @@ list<Solucao*> Heuristicas::pso(int epocas) {
 	//populacao inicial
 	iniciarEnxame(tamanhoPopulacao, maxVparticula, minVpartucula, &enxame);
 
-	//preencher gbestes com a fronteira de pareto
-	gbests.push_front(&enxame[0]);
-	addFronteiraDeParetoPSO(&enxame, &gbests);
+	cout <<"enxame " << endl;
+	for (int p = 0; p < tamanhoPopulacao; p++) {
+		cout << enxame[p].custo << " " << enxame[p].tempo  <<endl;
+	}
+
+	atualizarPbestGbest(tamanhoPopulacao, &enxame);
 
 	for (int e = 0; e < epocas; e++) {
-		cout << e << endl;
 		//atualizar velecidade (pela formula)
 
 		atualizarVelocidades(tamanhoPopulacao, &enxame, w, c1, c2, maxVparticula, minVpartucula);
@@ -44,27 +47,86 @@ list<Solucao*> Heuristicas::pso(int epocas) {
 
 		atualizarPosicoes(tamanhoPopulacao, &enxame);
 
-
-		cout << " _____ " << endl;
-		gbests.clear();
-		SolucaoCompare sc;
-		sort(enxame.begin(), enxame.end(), sc);
-		addFronteiraDeParetoPSO(&enxame, &gbests);
-		cout << " _____ " << endl;
-
+		atualizarPbestGbest(tamanhoPopulacao, &enxame);
 
 
 		//verificar novo gbest e pbests
 
 	}//fim for epocas
 
+
+	SolucaoCompare sc;
+	//sort(enxame.begin(), enxame.end(), sc);
+
+	gbests.push_front((enxame[0].pbest));
+	addFronteiraDeParetoPSO(&enxame, &gbests);
+
 	list<Solucao*>::iterator gb = gbests.begin();
 	for (; gb != gbests.end(); gb++) {
-		cout << (*gb)->custo << " " << (*gb)->tempo  << "   |    ";
-	}cout << endl;
+		addFronteiraDePareto(*gb);
+	}
 
+
+	list<Solucao>::iterator frot = fronteira.begin();
+	for (; frot != fronteira.end(); frot++) {
+		//cout << frot->custo << " " << frot->tempo  << "   |    ";
+	}//cout << endl;
+	cout << "Gbest: "<< enxame[0].gbest->custo << " " << enxame[0].gbest->tempo  <<endl;
+	cout << d->D<< endl;
+	Grafico g;
+	g.plotarGraficoDaSolucao(enxame[0].gbest);
+	//cout<< enxame[0].gbest->custo<< endl;
 	return gbests;
 
+}
+
+void Heuristicas::atualizarPbestGbest(int tamanhoPopulacao, vector<Solucao>* enxame){
+
+	for (int p = 0; p < tamanhoPopulacao; p++) {
+
+		if((*enxame)[p].pbest == NULL){
+			(*enxame)[p].pbest = new Solucao((*enxame)[p]);
+		}else if((*enxame)[p].custo < (*enxame)[p].pbest->custo && (*enxame)[p].tempo < (*enxame)[p].pbest->tempo){
+			delete (*enxame)[p].pbest;
+			(*enxame)[p].pbest = new Solucao((*enxame)[p]);
+		}else if( (*enxame)[p].custo < (*enxame)[p].pbest->custo && (*enxame)[p].tempo == (*enxame)[p].pbest->tempo){
+			delete (*enxame)[p].pbest;
+			(*enxame)[p].pbest = new Solucao((*enxame)[p]);
+		}else if( (*enxame)[p].custo == (*enxame)[p].pbest->custo && (*enxame)[p].tempo < (*enxame)[p].pbest->tempo){
+			delete (*enxame)[p].pbest;
+			(*enxame)[p].pbest = new Solucao((*enxame)[p]);
+		}//else if( (*enxame)[p].custo < (*enxame)[p].pbest->custo && (*enxame)[p].tempo > (*enxame)[p].pbest->tempo && (*enxame)[p].tempo <= (*enxame)[p].d->D){
+		//	delete (*enxame)[p].pbest;
+		//	(*enxame)[p].pbest = new Solucao((*enxame)[p]);
+		//}
+	}
+
+	Solucao * gbest = (*enxame)[0].gbest;
+	for (int p = 0; p < tamanhoPopulacao; p++) {
+		if(gbest == NULL){
+			gbest = (*enxame)[p].pbest;
+		}else if((*enxame)[p].pbest!=NULL && (*enxame)[p].pbest->custo < gbest->custo && (*enxame)[p].pbest->tempo < gbest->tempo){
+			gbest = (*enxame)[p].pbest;
+		}else if((*enxame)[p].pbest!=NULL && (*enxame)[p].pbest->custo < gbest->custo  && gbest->tempo == (*enxame)[p].pbest->tempo){
+			gbest = (*enxame)[p].pbest;
+		}else if((*enxame)[p].pbest!=NULL && gbest->custo == (*enxame)[p].pbest->custo && (*enxame)[p].pbest->tempo < gbest->tempo ){
+			gbest = (*enxame)[p].pbest;
+		}//else if((*enxame)[p].pbest!=NULL && (*enxame)[p].pbest->custo < gbest->custo && (*enxame)[p].pbest->tempo < gbest->tempo  && gbest->tempo <= (*enxame)[p].d->D){
+		//gbest = (*enxame)[p].pbest;
+		//}
+	}
+
+	for (int p = 0; p < tamanhoPopulacao; p++) {
+		(*enxame)[p].gbest = gbest;
+	}
+/*
+	for (int p = 0; p < tamanhoPopulacao; p++) {
+		if((*enxame)[p].gbest == NULL || (*enxame)[p].pbest == NULL){
+			cout <<p<<" " <<(*enxame)[p].gbest << " ";
+			cout <<(*enxame)[p].pbest << endl;
+		}
+	}
+	*/
 }
 
 void Heuristicas::atualizarVelocidades(int tamanhoPopulacao,
@@ -124,8 +186,7 @@ void Heuristicas::atualizarPosicoes(int tamanhoPopulacao, vector<Solucao>* enxam
 				int prec = ((*enxame)[p].Ti[pos] + (*enxame)[p].D[pos] + (*enxame)[p].v_new[pos])
 						- (*enxame)[p].Ti[*su]; //v1 + Ti1 + D1 - Ti2
 
-				if ( ((*enxame)[p].Ti[*su]+(*enxame)[p].v[*su]) < prec) {
-					// precedencia falha
+				if ( ((*enxame)[p].Ti[*su]+(*enxame)[p].v[*su]) < prec) {// precedencia falha
 					(*enxame)[p].v_new[*su] = prec; // altera valor para manter precedencia
 				}
 			}
@@ -154,26 +215,24 @@ void Heuristicas::addFronteiraDeParetoPSO(vector<Solucao> *enxame, list<Solucao*
 		list<Solucao*>::iterator gb = gbests->begin();
 		for (; gb != gbests->end(); gb++) {
 
-			if ((*enxame)[p].tempo < (*gb)->tempo && (*enxame)[p].custo < (*gb)->custo) {
+			if ((*enxame)[p].pbest->tempo < (*gb)->tempo && (*enxame)[p].pbest->custo < (*gb)->custo) {
 
-				(*gb)->pbest = &(*enxame)[p];
 				gb = gbests->erase(gb);
-				gbests->insert(gb, &(*enxame)[p]);
+				gbests->insert(gb, (*enxame)[p].pbest);
 
 				inGbest = true;
 
+				gb = gbests->begin();// reinicia
 				for (; gb != gbests->end(); gb++) {
-					if ((*enxame)[p].tempo < (*gb)->tempo && (*enxame)[p].custo < (*gb)->custo) {
-						(*gb)->pbest = &(*enxame)[p];
+					if ((*enxame)[p].pbest->tempo < (*gb)->tempo && (*enxame)[p].pbest->custo < (*gb)->custo) {
 						gb = gbests->erase(gb);
 					}
 				}
 				break;
 
-			} else if ((*gb)->tempo < (*enxame)[p].tempo && (*gb)->custo < (*enxame)[p].custo) {
-				(*enxame)[p].pbest = *gb;
+			} else if ((*gb)->tempo < (*enxame)[p].pbest->tempo && (*gb)->custo < (*enxame)[p].pbest->custo) {
 				break;
-			}else if((*gb)->tempo == (*enxame)[p].tempo && (*gb)->custo == (*enxame)[p].custo ){
+			}else if((*gb)->tempo == (*enxame)[p].pbest->tempo && (*gb)->custo == (*enxame)[p].pbest->custo ){
 				inGbest = true;
 				break;
 			}
@@ -185,22 +244,6 @@ void Heuristicas::addFronteiraDeParetoPSO(vector<Solucao> *enxame, list<Solucao*
 		}
 		SolucaoCompare sc;
 		gbests->sort(sc);
-	}
-
-	//segunda parte, pbest dos que estao na fronteira
-	list<Solucao*>::reverse_iterator ft = gbests->rbegin();
-	list<Solucao*>::reverse_iterator ft2 = gbests->rbegin();
-	++ft;
-	for (; ft != gbests->rend(); ft++, ft2++) { // setar pbest dos que estao na fronteira
-		(*ft2)->pbest = *ft;
-	}
-	--ft2;
-	(*gbests->begin())->pbest = *ft2;
-
-	list<Solucao*>::iterator best = gbests->begin();
-
-	for (int p = 0; p < enxame->size(); p++) {
-		(*enxame)[p].gbest = *best; //seta o gbest de todos incluseve o do gbest como ele mesmo
 	}
 
 }

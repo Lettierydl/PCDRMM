@@ -519,12 +519,37 @@ void Solucao::print() {
 	 */
 
 }
+Dados * d;
+	int* demanda; // demanda dos recursos utilizado na solucao
+	float custo;
+	int tempo;
+
+	vector<int> Ti; // tempo que iniciara a atividade j
+	vector<int> M; // modo em que sera executada da atividade j
+	vector<int> D; // o quanto durara a atividade j
+
+	vector<bool> alocadas; // vetor que diz se a atividade j esta alocada
+	vector<vector<int> > tr; // matriz de tipo de recurso k por tempo t , onde o conteúdo int é a quantidade utilizada de recurso to tipo k no tempo t.
+
+
+	/* Atributos do PSO */
+	vector<int> v; // velocidade
+	vector<int> v_new; // nova velocidade
+	//vector<int> x_new; // nova posicao (novo tempo de incio)
+	Solucao * pbest;
+	Solucao * gbest;
 
 Solucao::~Solucao() {
-	//delete demanda;
+	//delete(demanda);
+	tempo = 0 ; custo = 0;
+
 	Ti.erase(Ti.begin(), Ti.end());
 	M.erase(M.begin(), M.end());
 	D.erase(D.begin(), D.end());
 	alocadas.clear();
 	tr.erase(tr.begin(), tr.end());
+
+	v.clear();
+	v_new.clear();
+
 }
