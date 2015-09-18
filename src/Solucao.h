@@ -31,10 +31,13 @@ public:
 	/* Atributos do PSO */
 	vector<int> v; // velocidade
 	vector<int> v_new; // nova velocidade
-	//vector<int> x_new; // nova posicao (novo tempo de incio)
+	vector<int> fal; // escalonamento da solucao segundo a ideia do FAL
 	Solucao * pbest;
 	Solucao * gbest;
 
+	/*PSO*/
+	void reconstruirSolucaoComFAL();
+	void alocarQi(int qi);//recursivo
 
 
 	/* Métodos de Operações Bases */
@@ -62,9 +65,12 @@ public:
 
 	/* Métodos de Atualização */
 	void atualizarDemanda(int ti, int tf); //atualiada o valor da demanda dos recursos verificando apenas um determinada periodo de tepo da solucao de ti ate tf.
+	void atualizarTodaDemanda(); //atualiada o valor da demanda dos recursos de todo o tempo da solucao.
 
 	/* Métodos de Calculos */
 	list<int> calcularCaminhoDoFinalAteInicio(Solucao *s); //patindo do makespan e refeito o caminho ate a atividade 0
+	int calcularFolgaDeCaminhoAteInicio(int j, list<int> * caminho);// valor de folga da atividade j ate a atividae 0, percorrendo seus predecessores
+	int calcularFolgaDeCaminhoAteFim(int j, list<int> * caminho);// valor de folga da atividade j ate o makespan, percorrendo seus sussesores
 	void calcular_valores(); //calcula o custo e o tempo
 	float calcular_custo();
 	int calcular_tempo();

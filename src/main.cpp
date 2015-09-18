@@ -44,11 +44,11 @@ int main(int argc, char **argv) {
 
 //		d->print();
 
-		/*
+
 		Solucao *s1 = new Solucao(d);
 		s1->iniciarSolucaoComMelhorCusto();
 		d->D = s1->tempo;
-		*/
+
 
 		Grafico g;
 
@@ -85,7 +85,7 @@ int main(int argc, char **argv) {
 		//Solucao *ss = h.fronteira.be;
 		//g.plotarGraficoDaSolucao(ss);
 
-		//g.plotarTrandOFF(h.fronteira);
+		g.plotarTrandOFF(h.fronteira);
 
 	}
 

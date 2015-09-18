@@ -69,9 +69,71 @@ Solucao::Solucao(Solucao *s) {
 	}
 }
 
+
+/*PSO*/
+
+/*os modos e as duracoes ja devem estar pronta
+ *a fal nao deve conter redundancia (ciclos)*/
+void Solucao::reconstruirSolucaoComFAL(){
+	for(int j = 1; j<d->j;j++){
+		Ti[j] = -1;
+		alocadas[j]=false;
+	}
+
+	alocarAtividade(0,0,0);// nem precisa mais deixa pro precaucao
+	for(int j = 1; j<d->j;j++){
+
+		int qi = fal[j];
+		if(Ti[qi] != -1){// predecessora nao foi alocada ainda
+			alocarQi(qi);
+		}// sair do if tem que ter alocado qi
+
+		if(Ti[qi] != -1){cout <<"erro não alocou qi= "<< qi<< endl;}
+
+		if(Ti[j] == -1){//ainda nao foi alocada, e qi ja foi alocada
+			alocarAtividade(j,Ti[qi]+D[qi],M[j]);
+		}
+	}
+	// todas foram alocadas
+	// agora devese verificar se nao estrapolou tempo final
+	// e aplicar metodos para corrigir a solucao
+
+}
+
+// metodo recursivo
+//atividade 0 ja deve ser alocada
+void Solucao::alocarQi(int qi){
+	if(qi == 0){
+		alocarAtividade(0,0,0);
+		return;
+	}else if(fal[qi] == 0){
+		alocarAtividade(qi,0,M[qi]);
+		return;
+	}
+
+	if(Ti[fal[qi]] != -1){// pode alocar qi
+		alocarAtividade(qi,Ti[fal[qi]]+D[fal[qi]],M[qi]);
+	}else{
+		alocarQi(fal[qi]);
+		alocarAtividade(qi,Ti[fal[qi]]+D[fal[qi]],M[qi]);
+	}
+}
+
 void Solucao::atualizarDemanda(int ti, int tf) {
 	for (int k = 0; k < d->tipos; k++) {
 		for (int t = ti; t <= tf; t++) {
+			if (demanda[k] < tr[t][k]) {
+				demanda[k] = tr[t][k]; // acrescentando a demanda
+			}
+		}
+	}
+}
+
+/*antes deve ser calculado o tempo*/
+void Solucao::atualizarTodaDemanda() {
+	for (int k = 0; k < d->tipos; k++) {
+		demanda[k] = INT_MAX;
+		for (int t = 0; t <= tempo; t++) {
 			if (demanda[k] < tr[t][k]) {
 				demanda[k] = tr[t][k]; // acrescentando a demanda
 			}
@@ -410,6 +472,56 @@ void Solucao::iniciarSolucaoComMenorUtilizacaoBalanceadaDeRecursos() {
 	}
 	calcular_valores();
 }
+
+/*Calcula de forma recursiva a menor folga ate a origem
+(folga é a diferenta do tempo de inicio da atividade j ate o fim da sua predecessora)
+O primeiro a ser passado será o primeiro da lista caminho (o ultimo sera 0)
+*/
+int Solucao::calcularFolgaDeCaminhoAteInicio(int j, list<int> *caminho){
+	list<int>::iterator pre = d->H[j].begin();
+	int min_folga = INT_MAX;
+	int min_pred = 0;
+	for (; pre != d->H[j].end(); pre++) {
+		if(min_folga > Ti[j] - (Ti[*pre] + D[*pre]) ){
+			min_folga = Ti[j] - (Ti[*pre] + D[*pre]);
+			min_pred = *pre;
+		}
+	}
+
+	caminho->push_back(min_pred);
+	if(min_pred == 0){
+		return 0;
+	}else{
+		return min_folga + calcularFolgaDeCaminhoAteInicio(min_pred ,caminho);
+	}
+
+}
+
+
+/*Calcula de forma recursiva a menor folga ate o makespan
+(folga é a diferenta do tempo de inicio da atividade j ate o inicio da sua sucessora)
+O primeiro a ser passado será o primeiro da lista caminho (e o ultimo sera o makespan)
+*/
+int Solucao::calcularFolgaDeCaminhoAteFim(int j, list<int> *caminho){
+	list<int>::iterator su = d->S[j].begin();
+	int min_folga = INT_MAX;
+	int min_su = d->j-1;
+	for (; su != d->S[j].end(); su++) {
+		if(min_folga > Ti[*su] - (Ti[j] + D[j]) ){
+			min_folga = Ti[*su] - (Ti[j] + D[j]);
+			min_su = *su;
+		}
+	}
+
+	caminho->push_back(min_su);
+	if(min_su == d->j-1){
+		return 0;
+	}else{
+		return min_folga + calcularFolgaDeCaminhoAteFim(min_su ,caminho);
+	}
+
+}
+
 
 list<int> Solucao::calcularCaminhoDoFinalAteInicio(Solucao *s) {
 	int uAtividade = d->j - 1; //ultima atividade processada

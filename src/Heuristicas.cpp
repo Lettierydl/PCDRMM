@@ -19,7 +19,7 @@
 using namespace std;
 
 list<Solucao*> Heuristicas::pso(int epocas) {
-	int tamanhoPopulacao = 30;
+	int tamanhoPopulacao = 100;
 	int maxVparticula = 5;
 	int minVpartucula = -5;
 	float w = 0.2; // inercia
@@ -69,8 +69,8 @@ list<Solucao*> Heuristicas::pso(int epocas) {
 
 	list<Solucao>::iterator frot = fronteira.begin();
 	for (; frot != fronteira.end(); frot++) {
-		//cout << frot->custo << " " << frot->tempo  << "   |    ";
-	}//cout << endl;
+		cout << frot->custo << " " << frot->tempo  << "   |    ";
+	}cout << endl;
 	cout << "Gbest: "<< enxame[0].gbest->custo << " " << enxame[0].gbest->tempo  <<endl;
 	cout << d->D<< endl;
 	Grafico g;
@@ -158,6 +158,18 @@ void Heuristicas::atualizarVelocidades(int tamanhoPopulacao,
 			 */
 			//cout << pos <<"\t" << pbest <<" | "<< gbest  <<" \t\t " << (*enxame)[p].v[pos]<<" -> " << (*enxame)[p].v_new[pos] << endl;
 
+
+			if (pos < d->j) {
+				int min = (*enxame)[p].verificarTempoInicioCedo(pos);
+				int max = (*enxame)[p].verificarTempoInicioTarde(pos);
+
+				if ((*enxame)[p].v_new[pos] > max) { // limites de velocidade
+					(*enxame)[p].v_new[pos] = max;
+				} else if ((*enxame)[p].v_new[pos] < min) {
+					(*enxame)[p].v_new[pos] = min;
+				}
+			}
+
 			if ((*enxame)[p].v_new[pos] > maxVparticula) { // limites de velocidade
 				(*enxame)[p].v_new[pos] = maxVparticula;
 			} else if ((*enxame)[p].v_new[pos] < minVpartucula) {
@@ -175,21 +187,88 @@ void Heuristicas::atualizarPosicoes(int tamanhoPopulacao, vector<Solucao>* enxam
 	for (int p = 0; p < tamanhoPopulacao; p++) {
 		for (int pos = 1; pos < d->j; pos++) {
 
-			//atualizar modos primeiro
+			//atualizar modos e duracoes
 			(*enxame)[p].M[pos] = (*enxame)[p].M[pos] + (*enxame)[p].M[pos+d->j];
-			(*enxame)[p].D[pos] = d->d[pos][(*enxame)[p].M[pos]]; //nova duracao
+			(*enxame)[p].D[pos] = d->d[pos][(*enxame)[p].M[pos]];
+
+			//ao alterar o modo, verificar se nao vai prejudicar os sussesores
+
+			int min = (*enxame)[p].verificarTempoInicioCedo(pos);
+			int max = (*enxame)[p].verificarTempoInicioTarde(pos);
+			if( max+(*enxame)[p].D[pos] - min < (*enxame)[p].D[pos]){// modo nao pode ser alocado
+				// altera para o menor modo possivel
+				(*enxame)[p].M[pos] = (*enxame)[p].verificarMelhorModoPeloTempo(pos);
+				(*enxame)[p].D[pos] = d->d[pos][(*enxame)[p].M[pos]];
+			}
 
 
-			list<int>::iterator su = d->S[pos].begin();
-			for (; su != d->S[pos].end(); su++) {
-				// empurra todos susessores que devem ser empurrados para permanecer a precedencia
-				int prec = ((*enxame)[p].Ti[pos] + (*enxame)[p].D[pos] + (*enxame)[p].v_new[pos])
-						- (*enxame)[p].Ti[*su]; //v1 + Ti1 + D1 - Ti2
+			int new_pos = (*enxame)[p].Ti[pos] + (*enxame)[p].v_new[pos];
 
-				if ( ((*enxame)[p].Ti[*su]+(*enxame)[p].v[*su]) < prec) {// precedencia falha
-					(*enxame)[p].v_new[*su] = prec; // altera valor para manter precedencia
+			if(new_pos < 0){// nao pode ser alocado em tempo negativo
+				// ver se pos nao tem precessores e aloca em 0
+				// caso contrario aloca ela no menor tempo possivel
+			}
+
+			if((*enxame)[p].v_new[pos] < 0){// predecessores
+
+				list<int>::iterator pre = d->H[pos].begin();
+				for (; pre != d->H[pos].end(); pre++) {
+					int tf_pre = +(*enxame)[p].D[*pre];
+					if(new_pos < tf_pre ){// choque de precedencia
+						list<int> * caminho = new list<int>();
+						int folga  = ((*enxame)[p]).calcularFolgaDeCaminhoAteInicio(*pre, caminho);
+						if(tf_pre - folga <= new_pos){// da pra alocar
+							//caminho
+							list<int>::reverse_iterator cam = caminho->rbegin();
+							for(;cam != caminho->rend() ; cam++){
+								if(*cam == 0){//atividade inicio nao da pra realocar
+									continue;
+								}else {
+									int min_cam = ((*enxame)[p]).verificarTempoInicioCedo(*cam);
+									if(min_cam < ((*enxame)[p]).Ti[*cam]){
+										((*enxame)[p]).Ti[*cam] = min_cam;//realocou para o menor tempo de inicio dela possivel
+									}// else, ja esta alocada no menor possivel
+								}
+							}
+							// tirou a folga das atividades em caminho
+						}else{// nao da pra alocar, aloca no tempo minimo
+							(*enxame)[p].v_new[pos] = tf_pre - (*enxame)[p].Ti[pos];
+						}
+					}
+				}
+
+			}else if((*enxame)[p].v_new[pos] > 0){// sucessores
+				int tf_pos = new_pos + (*enxame)[p].D[pos];
+				list<int>::iterator su = d->S[pos].begin();
+				for (; su != d->S[pos].end(); su++) {
+					if(tf_pos > (*enxame)[p].Ti[*su]){// quabra precedencia de *su
+						list<int> * caminho = new list<int>();
+						int folga  = ((*enxame)[p]).calcularFolgaDeCaminhoAteFim(*su, caminho);
+						if(tf_pos <= (*enxame)[p].Ti[*su] + folga){// pode alocar atividades dando um shift no *caminho
+							//caminho
+							list<int>::reverse_iterator cam = caminho->rbegin();
+							for(;cam != caminho->rend() ; cam++){
+								if(*cam == d->j-1){//atividade fim(makespan) nao da pra realocar
+									continue;
+								}else{
+									int max_tf_cam = ((*enxame)[p]).verificarTempoInicioTarde(*cam) + ((*enxame)[p]).D[*cam];
+									if(max_tf_cam > ((*enxame)[p]).Ti[*cam] + ((*enxame)[p]).D[*cam] ){// realoque
+										((*enxame)[p]).Ti[*cam] = max_tf_cam -  ((*enxame)[p]).D[*cam];
+									}// else ja esta alocado no max tempo possivel
+								}
+							}
+						}else{// nao da pra alocar, aloca no tempo minimo
+							(*enxame)[p].v_new[pos] = (*enxame)[p].Ti[*su] - ( (*enxame)[p].Ti[pos] + (*enxame)[p].D[pos] );
+						}
+					}
 				}
 			}
+
+			// depois desses passo, ou o espaço para alocar a atividade foi feito
+			// ou sua velocidade foi reduzida
+
+
+
 			(*enxame)[p].Ti[pos] = (*enxame)[p].Ti[pos] + (*enxame)[p].v_new[pos];
 		}
 		//atualizar velocidade e limpar vetores (new velocidade, new posicao)
@@ -202,7 +281,8 @@ void Heuristicas::atualizarPosicoes(int tamanhoPopulacao, vector<Solucao>* enxam
 			(*enxame)[p].v_new[pos] = 0;
 		}
 
-		(*enxame)[p].atualizarDemanda(0, (*enxame)[p].calcular_tempo());
+		(*enxame)[p].calcular_tempo();
+		(*enxame)[p].atualizarTodaDemanda();
 		(*enxame)[p].calcular_custo();
 	}
 }
@@ -255,8 +335,10 @@ void Heuristicas::iniciarEnxame(int tamanhoPopulacao, int maxVparticula,
 		(*enxame).push_back(new Solucao(d));
 	}
 	(*enxame)[0].iniciarSolucaoComMelhorCusto();
+	//(*enxame)[0].iniciarSolucaoComModosAleatoriosDentroDaDataLimite();
 	(*enxame)[1].iniciarSolucaoComMelhorMakespan();
-	(*enxame)[2].iniciarSolucaoComMenorUtilizacao();
+	//(*enxame)[2].iniciarSolucaoComMenorUtilizacao();
+	(*enxame)[2].iniciarSolucaoComModosAleatoriosDentroDaDataLimite();
 	(*enxame)[3].iniciarSolucaoComMenorUtilizacaoBalanceadaDeRecursos();
 	(*enxame)[4].iniciarSolucaoComModosAleatoriosDentroDaDataLimite();
 	for (int tam = 5; tam < tamanhoPopulacao; tam++) {
@@ -273,7 +355,7 @@ void Heuristicas::iniciarEnxame(int tamanhoPopulacao, int maxVparticula,
 			// velocidades iniciais aleatorias
 			int max, min, mmax, mmin, vpos, vmod;
 			min = (*enxame)[p].verificarTempoInicioCedo(pos) - (*enxame)[p].Ti[pos];
-			max = (*enxame)[p].verificarTempoInicioTardeForaD(pos)
+			max = (*enxame)[p].verificarTempoInicioTarde(pos)
 					- (*enxame)[p].Ti[pos];
 			vpos = rand() % ((max - min) + 1) + min;
 			if (d->M[pos] > 1) {
