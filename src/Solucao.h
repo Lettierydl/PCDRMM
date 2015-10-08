@@ -31,13 +31,19 @@ public:
 	/* Atributos do PSO */
 	vector<int> v; // velocidade
 	vector<int> v_new; // nova velocidade
+
+	vector<int> x; // posicao de possiveis_qi, possiveis_qi[x[j]] é o que vai ficar no fal da ativiade j
+
 	vector<int> fal; // escalonamento da solucao segundo a ideia do FAL
 	Solucao * pbest;
 	Solucao * gbest;
+	vector<  vector<int>  > possiveis_qi;// atividades possiveis candidatas a serem qi dela(ou seja, devem iniciar antes dela)
 
 	/*PSO*/
+	void contruirFal();
 	void reconstruirSolucaoComFAL();
-	void alocarQi(int qi);//recursivo
+	void preencherPossiveisQi();
+	int alocarQi(int qi);//aloca todas as atividades predecessoras e retorna o tempo de fim da ultima atividade
 
 
 	/* Métodos de Operações Bases */
@@ -56,7 +62,11 @@ public:
 	/* Métodos para Verificacao */
 	int verificarTempoInicioCedo(int j); // verifica o mais cedo tempo de inicio (ti) possivel para a atividade j, pelas suas precedencias ja cadastradas
 	int verificarTempoInicioTarde(int j); // verifica o tempo de inicio mais tarde da ativiade j verificando seus sucessores e dentro do tempo limite para o projeto d->D
+	int verificarTempoInicioTardeDentroDeD(int j); // verifica o tempo de inicio mais tarde da ativiade j verificando seus sucessores e dentro do tempo limite para o projeto d->D
 	int verificarTempoInicioTardeForaD(int j);
+
+	int verificarTempoFimMaisTardeDentroDeD(int j);// verifica o tempo de fim mais tarde para a atividade j
+
 	int verificarMelhorModoPeloTempo(int j); // verifica o modo que gastará menos tempo, desconsiderando o custo do recurso
 	int verificarMelhorModoPelaUtilizacao(int j); // verifica o modo que utiliza menos recursos, desconsiderando o tempo de duracao da atividade
 	int verificarMelhorModoPelaMenorQuantidadeUtilizada(int j); // verifica o modo que utiliza a menor quantidade de recursos, desconsiderando o tempo e custo de utilizacao

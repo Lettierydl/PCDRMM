@@ -7,6 +7,7 @@
 
 #include "Solucao.h"
 #include "Dados.h"
+#include "AlgAux.h"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -62,6 +63,11 @@ Solucao::Solucao(Solucao *s) {
 	this->Ti = vector<int>(s->Ti);
 	this->alocadas = vector<bool>(s->alocadas);
 
+	/*PSO
+	 this->fal = vector<int>(s->fal);
+	 *this->pbest = *s->pbest;
+	 *this->gbest = *s->gbest;*/
+
 	int tempoMaximoEsperado = s->tr.size(); // melhorar isso
 	this->tr.resize(tempoMaximoEsperado);
 	for (int t = 0; t < tempoMaximoEsperado; t++) {
@@ -69,29 +75,97 @@ Solucao::Solucao(Solucao *s) {
 	}
 }
 
-
 /*PSO*/
+/*preenche a fal e X com os dados da solucao atual
+ * possiveis qi ja deve estar preenchido*/
+void Solucao::contruirFal() {
+	// preenchendo o fal
+	fal[0] = 0;
+	for (int j = 1; j < d->j; j++) {
+		int ti_j = Ti[j];
+		bool preencheu = false;
+		for (int posi = 0; posi < possiveis_qi[j].size(); posi++) {
+			if (Ti[possiveis_qi[j][posi]] + D[possiveis_qi[j][posi]] == ti_j) {
+				fal[j] = possiveis_qi[j][posi];
+				x[j] = posi;
+				preencheu = true;
+				break;
+			}
+		}
 
-/*os modos e as duracoes ja devem estar pronta
- *a fal nao deve conter redundancia (ciclos)*/
-void Solucao::reconstruirSolucaoComFAL(){
-	for(int j = 1; j<d->j;j++){
+		if (!preencheu) {// se nao preencheu ainda entao deve pegar o ultimo predecessor
+			int ult_pre = 0;
+			int ult_tf_pre = 0;
+			list<int>::iterator pre = d->H[j].begin();
+			for (; pre != d->H[j].end(); pre++) {
+				if (ult_tf_pre < Ti[*pre] + D[*pre]) {
+					ult_tf_pre = Ti[*pre] + D[*pre];
+					ult_pre = *pre;
+				}
+			}
+			fal[j] = ult_pre;// encontrou o ultimo predecessor
+			// agora deve saber qual é sua posicao em possiveis_qi[j] e coloca-lo em x
+			for (int posi = 0; posi < possiveis_qi[j].size(); posi++) {
+				if (possiveis_qi[j][posi] == ult_pre) {
+					x[j] = posi;
+					break;
+				}
+			}
+		}
+
+	}
+}
+
+/*Modifica a solucao de acordo com o que esta em fal
+ * os modos e as duracoes ja devem estar pronta
+ *a fal nao deve conter redundancia (ciclos)
+ *e a fal ja deve esta preenchida (qualquer coisa utilize o metodo contruirFal() para preencher a fal)*/
+void Solucao::reconstruirSolucaoComFAL() {
+
+	for (int j = 1; j < d->j; j++) {
+		int m_j = M[j];
+		desalocar(j);
 		Ti[j] = -1;
-		alocadas[j]=false;
+		M[j] = m_j;
+		D[j] = d->d[j][m_j];
 	}
 
-	alocarAtividade(0,0,0);// nem precisa mais deixa pro precaucao
-	for(int j = 1; j<d->j;j++){
+	alocarAtividade(0, 0, 0); // nem precisa mais deixa pro precaucao
+	for (int j = 1; j < d->j; j++) {
 
 		int qi = fal[j];
-		if(Ti[qi] != -1){// predecessora nao foi alocada ainda
-			alocarQi(qi);
-		}// sair do if tem que ter alocado qi
+		if (Ti[qi] != -1) { // predecessora nao foi alocada ainda
+			int tf_qi = alocarQi(qi);
+		} // sair do if tem que ter alocado qi e todas suas predecessoras
 
-		if(Ti[qi] != -1){cout <<"erro não alocou qi= "<< qi<< endl;}
+		if (Ti[qi] != -1) {
+			cout << "erro não alocou qi= " << qi << endl;
+		}
 
-		if(Ti[j] == -1){//ainda nao foi alocada, e qi ja foi alocada
-			alocarAtividade(j,Ti[qi]+D[qi],M[j]);
+		if (Ti[j] == -1) { //ainda nao foi alocada, e qi ja foi alocada
+			int ti_cedo_j = verificarTempoInicioCedo(j);
+			if (ti_cedo_j <= Ti[qi] + D[qi]) {
+				alocarAtividade(j, Ti[qi] + D[qi], M[j]); // se der aloca no fim da atividade
+			} else {
+				alocarAtividade(j, ti_cedo_j, M[j]); // se nao aloca no tempo de inicio mais cedo dela
+				// e seta o fal dela como a atividade que tiver o tempo de fim com ti_cedo_j
+				for (list<int>::iterator p = d->H[j].begin();
+						p != d->H[j].end(); p++) {
+					if ((Ti[*p] + D[*p]) == ti_cedo_j) {
+						fal[j] = *p;
+
+						for (int position = 0;
+								position < possiveis_qi[j].size(); position++) {
+							if (*p == possiveis_qi[j][position]) {
+								x[j] = position;
+							}
+						}
+						break;
+					}
+				}
+
+			}
+
 		}
 	}
 	// todas foram alocadas
@@ -100,23 +174,40 @@ void Solucao::reconstruirSolucaoComFAL(){
 
 }
 
-// metodo recursivo
-//atividade 0 ja deve ser alocada
-void Solucao::alocarQi(int qi){
-	if(qi == 0){
-		alocarAtividade(0,0,0);
-		return;
-	}else if(fal[qi] == 0){
-		alocarAtividade(qi,0,M[qi]);
-		return;
+/* metodo recursivo
+ retorna o tempo de fim de qi*/
+int Solucao::alocarQi(int qi) {
+	if (qi == 0) {
+		alocarAtividade(0, 0, 0);
+		return 0;
+	} else if (fal[qi] == 0) {
+		alocarAtividade(qi, 0, M[qi]);
+		return 0;
 	}
 
-	if(Ti[fal[qi]] != -1){// pode alocar qi
-		alocarAtividade(qi,Ti[fal[qi]]+D[fal[qi]],M[qi]);
-	}else{
-		alocarQi(fal[qi]);
-		alocarAtividade(qi,Ti[fal[qi]]+D[fal[qi]],M[qi]);
+	if (Ti[fal[qi]] != -1) {	// pode alocar qi
+		alocarAtividade(qi, Ti[fal[qi]] + D[fal[qi]], M[qi]);
+		return Ti[qi] + D[qi];
+	} else {
+		int tf_fal_qi = alocarQi(fal[qi]);
+		alocarAtividade(qi, tf_fal_qi, M[qi]);
+		return Ti[qi] + D[qi];
 	}
+}
+
+void Solucao::preencherPossiveisQi() {
+	// sucessores direto e indireto, que não pode iniciar depois de pos
+	for (int at = 0; at < d->j; at++) {
+
+		// todos sao possiveis qi menos os posteriores
+		vector<bool> * at_posteriores = Alg_Aux::atividades_posteriores(d, at);
+		for (int j = 0; j < d->j; j++) {
+			if (!(*at_posteriores)[j]) {
+				possiveis_qi[at].push_back(j);
+			}
+		}
+	}
+
 }
 
 void Solucao::atualizarDemanda(int ti, int tf) {
@@ -213,11 +304,10 @@ int Solucao::verificarTempoInicioCedo(int j) {
 	return possivel;
 }
 
-
 int Solucao::verificarTempoInicioTardeForaD(int j) { //fora do limite D
 	int possivel = INT_MAX;
 
-	if(j == d->j){
+	if (j == d->j) {
 		return possivel;
 	}
 	for (list<int>::iterator s = d->S[j].begin(); s != d->S[j].end(); s++) {
@@ -234,7 +324,7 @@ int Solucao::verificarTempoInicioTardeForaD(int j) { //fora do limite D
 int Solucao::verificarTempoInicioTarde(int j) { //dentro da data limite D
 	int possivel = d->D;
 
-	if(j == d->j){
+	if (j == d->j) {
 		return possivel;
 	}
 	for (list<int>::iterator s = d->S[j].begin(); s != d->S[j].end(); s++) {
@@ -242,6 +332,38 @@ int Solucao::verificarTempoInicioTarde(int j) { //dentro da data limite D
 			if (Ti[*s] < possivel) {
 				possivel = Ti[*s];
 			}
+		}
+	}
+	return possivel;
+}
+
+// esse metodo pode estar errado
+int Solucao::verificarTempoInicioTardeDentroDeD(int j) { //dentro da data limite D
+	int possivel = d->D;
+
+	if (j == d->j) {
+		return possivel;
+	}
+	for (list<int>::iterator s = d->S[j].begin(); s != d->S[j].end(); s++) {
+		if (alocadas[*s]) { //atividades que ja foram alocadas
+			if (Ti[*s] < possivel) {
+				possivel = Ti[*s];
+			}
+		}
+	}
+	return possivel - D[j];
+}
+
+/*todas as atividades ja devem ter sido alocadas*/
+int Solucao::verificarTempoFimMaisTardeDentroDeD(int j) { //dentro da data limite D
+	int possivel = d->D;
+
+	if (j == d->j) {
+		return possivel;
+	}
+	for (list<int>::iterator s = d->S[j].begin(); s != d->S[j].end(); s++) {
+		if (Ti[*s] < possivel) {
+			possivel = Ti[*s];
 		}
 	}
 	return possivel;
@@ -474,54 +596,56 @@ void Solucao::iniciarSolucaoComMenorUtilizacaoBalanceadaDeRecursos() {
 }
 
 /*Calcula de forma recursiva a menor folga ate a origem
-(folga é a diferenta do tempo de inicio da atividade j ate o fim da sua predecessora)
-O primeiro a ser passado será o primeiro da lista caminho (o ultimo sera 0)
-*/
-int Solucao::calcularFolgaDeCaminhoAteInicio(int j, list<int> *caminho){
+ (folga é a diferenta do tempo de inicio da atividade j ate o fim da sua predecessora)
+ O primeiro a ser passado será o primeiro da lista caminho (o ultimo sera 0)
+ */
+int Solucao::calcularFolgaDeCaminhoAteInicio(int j, list<int> *caminho) {
 	list<int>::iterator pre = d->H[j].begin();
 	int min_folga = INT_MAX;
 	int min_pred = 0;
 	for (; pre != d->H[j].end(); pre++) {
-		if(min_folga > Ti[j] - (Ti[*pre] + D[*pre]) ){
+		if (min_folga > Ti[j] - (Ti[*pre] + D[*pre])) {
 			min_folga = Ti[j] - (Ti[*pre] + D[*pre]);
 			min_pred = *pre;
 		}
 	}
 
 	caminho->push_back(min_pred);
-	if(min_pred == 0){
+	if (min_pred == 0) {
 		return 0;
-	}else{
-		return min_folga + calcularFolgaDeCaminhoAteInicio(min_pred ,caminho);
+	} else {
+		return min_folga + calcularFolgaDeCaminhoAteInicio(min_pred, caminho);
 	}
 
 }
 
-
 /*Calcula de forma recursiva a menor folga ate o makespan
-(folga é a diferenta do tempo de inicio da atividade j ate o inicio da sua sucessora)
-O primeiro a ser passado será o primeiro da lista caminho (e o ultimo sera o makespan)
-*/
-int Solucao::calcularFolgaDeCaminhoAteFim(int j, list<int> *caminho){
+ (folga é a diferenta do tempo de inicio da atividade j ate o inicio da sua sucessora)
+ O primeiro a ser passado será o primeiro da lista caminho (e o ultimo sera o makespan)
+ */
+//Tem que aplicar dikistra
+int Solucao::calcularFolgaDeCaminhoAteFim(int j, list<int> *caminho) {
+	caminho->push_back(j); // se adiciona no caminho
 	list<int>::iterator su = d->S[j].begin();
 	int min_folga = INT_MAX;
-	int min_su = d->j-1;
+	int min_su = d->j - 1;
+
 	for (; su != d->S[j].end(); su++) {
-		if(min_folga > Ti[*su] - (Ti[j] + D[j]) ){
+		if (min_folga > Ti[*su] - (Ti[j] + D[j])) {
 			min_folga = Ti[*su] - (Ti[j] + D[j]);
 			min_su = *su;
+		} else if (min_folga > Ti[*su] - (Ti[j] + D[j])) {
+			caminho->push_back(*su); // tambem dar shift nessa daqui, se puder
 		}
 	}
 
-	caminho->push_back(min_su);
-	if(min_su == d->j-1){
+	if (min_su == d->j - 1) {
 		return 0;
-	}else{
-		return min_folga + calcularFolgaDeCaminhoAteFim(min_su ,caminho);
+	} else {
+		return min_folga + calcularFolgaDeCaminhoAteFim(min_su, caminho);
 	}
 
 }
-
 
 list<int> Solucao::calcularCaminhoDoFinalAteInicio(Solucao *s) {
 	int uAtividade = d->j - 1; //ultima atividade processada
@@ -568,7 +692,7 @@ float Solucao::calcular_custo() {
 
 int Solucao::calcular_tempo() {
 	this->tempo = 0;
-	for (int j = 0; j < d->j; ++j) {
+	for (int j = 0; j < d->j - 1; j++) {
 		if ((Ti[j] + D[j]) > tempo) {
 			tempo = (D[j] + Ti[j]);
 		}
@@ -632,28 +756,28 @@ void Solucao::print() {
 
 }
 Dados * d;
-	int* demanda; // demanda dos recursos utilizado na solucao
-	float custo;
-	int tempo;
+int* demanda; // demanda dos recursos utilizado na solucao
+float custo;
+int tempo;
 
-	vector<int> Ti; // tempo que iniciara a atividade j
-	vector<int> M; // modo em que sera executada da atividade j
-	vector<int> D; // o quanto durara a atividade j
+vector<int> Ti; // tempo que iniciara a atividade j
+vector<int> M; // modo em que sera executada da atividade j
+vector<int> D; // o quanto durara a atividade j
 
-	vector<bool> alocadas; // vetor que diz se a atividade j esta alocada
-	vector<vector<int> > tr; // matriz de tipo de recurso k por tempo t , onde o conteúdo int é a quantidade utilizada de recurso to tipo k no tempo t.
+vector<bool> alocadas; // vetor que diz se a atividade j esta alocada
+vector<vector<int> > tr; // matriz de tipo de recurso k por tempo t , onde o conteúdo int é a quantidade utilizada de recurso to tipo k no tempo t.
 
-
-	/* Atributos do PSO */
-	vector<int> v; // velocidade
-	vector<int> v_new; // nova velocidade
-	//vector<int> x_new; // nova posicao (novo tempo de incio)
-	Solucao * pbest;
-	Solucao * gbest;
+/* Atributos do PSO */
+vector<int> v; // velocidade
+vector<int> v_new; // nova velocidade
+//vector<int> x_new; // nova posicao (novo tempo de incio)
+Solucao * pbest;
+Solucao * gbest;
 
 Solucao::~Solucao() {
 	//delete(demanda);
-	tempo = 0 ; custo = 0;
+	tempo = 0;
+	custo = 0;
 
 	Ti.erase(Ti.begin(), Ti.end());
 	M.erase(M.begin(), M.end());

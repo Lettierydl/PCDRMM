@@ -67,7 +67,10 @@ void Grafico::plotarGraficoDaSolucao(Solucao *s) {
 
 	}
 
+	//aberto = &g1;
+
 }
+
 
 void Grafico::plotarTrandOFF(list<Solucao> solucoes) {
 	vector<float> custo;

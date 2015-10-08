@@ -10,6 +10,7 @@
 #include "Solucao.h"
 #include "Grafico.h"
 #include "Heuristicas.h"
+#include "AlgAux.h"
 #include "Teste.h"
 #include <iostream>
 #include <string>
@@ -47,13 +48,20 @@ int main(int argc, char **argv) {
 
 		Solucao *s1 = new Solucao(d);
 		s1->iniciarSolucaoComMelhorCusto();
-		d->D = s1->tempo;
-
-
 		Grafico g;
+		//g.plotarGraficoDaSolucao(s1);
+
+
+
+		//d->D = s1->tempo;
+
+
+
 
 		Heuristicas h(d);
-		h.pso(50);
+		h.pso(500);
+
+		//g.plotarTrandOFF(h.fronteira);
 
 		clock_t start_time;
 		start_time = clock();
@@ -85,7 +93,7 @@ int main(int argc, char **argv) {
 		//Solucao *ss = h.fronteira.be;
 		//g.plotarGraficoDaSolucao(ss);
 
-		g.plotarTrandOFF(h.fronteira);
+		//g.plotarTrandOFF(h.fronteira);
 
 	}
 
